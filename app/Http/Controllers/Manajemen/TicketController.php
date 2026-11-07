@@ -129,6 +129,8 @@ class TicketController extends Controller
             'status'        => 'required|in:dilaporkan,ditugaskan,diproses,selesai',
             'technician_id' => 'nullable|exists:users,id',
             'due_at'        => 'nullable|date',
+            'started_at'    => 'nullable|date',
+            'finished_at'   => 'nullable|date',
             'progress'      => 'nullable|integer|min:0|max:100',
             'action'        => 'nullable|string|max:255',
             'spareparts'    => 'nullable|string|max:255',
@@ -137,29 +139,45 @@ class TicketController extends Controller
         $oldTechId = $ticket->technician_id;
         $oldStatus = $ticket->status;
 
-        if ($data['status'] === 'selesai' && empty($ticket->finished_at)) {
-            $data['finished_at'] = now();
+        if ($data['status'] === 'selesai') {
+            $data['finished_at'] = $data['finished_at'] ?? $ticket->finished_at ?? now();
             $data['progress'] = 100;
+            // Sinkronkan status mesin menjadi aktif dan catat tanggal servis terakhir
+            $ticket->machine->update([
+                'status'          => 'aktif',
+                'last_service_at' => $data['finished_at'],
+            ]);
         } elseif ($data['status'] !== 'selesai' && $ticket->status === 'selesai') {
             $data['finished_at'] = null;
         }
 
-        if ($data['status'] === 'diproses' && empty($ticket->started_at)) {
+        if (in_array($data['status'], ['diproses', 'selesai']) && empty($data['started_at']) && empty($ticket->started_at)) {
             $data['started_at'] = now();
+        }
+
+        if ($data['status'] === 'diproses') {
+            $ticket->machine->update(['status' => 'diproses']);
+        } elseif ($data['status'] === 'dilaporkan') {
+            $ticket->machine->update(['status' => 'dilaporkan']);
         }
 
         $ticket->update($data);
 
+        $waMsg = '';
         if (!empty($data['technician_id']) && $data['technician_id'] != $oldTechId) {
             $tech = User::find($data['technician_id']);
             $ticket->log('Ditugaskan', "Teknisi ditugaskan ke {$tech?->name}");
+            if ($tech && !empty($tech->whatsapp)) {
+                $waRes = \App\Services\WhatsAppService::sendTicketAssignment($ticket, $tech);
+                $waMsg = $waRes['success'] ? ' & notifikasi WA terkirim' : " (WA: {$waRes['message']})";
+            }
         }
         if ($data['status'] !== $oldStatus) {
             $ticket->log(ucfirst($data['status']), 'Status tiket diperbarui manajemen');
         }
 
         return redirect()->route('manajemen.perbaikan.show', $ticket)
-            ->with('ok', "Tiket {$ticket->code} berhasil diperbarui.");
+            ->with('ok', "Tiket {$ticket->code} berhasil diperbarui{$waMsg}.");
     }
 
     public function destroy(Ticket $ticket)

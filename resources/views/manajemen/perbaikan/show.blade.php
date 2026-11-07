@@ -60,9 +60,12 @@
       <div><span>Keluhan</span><b>{{ $ticket->complaint }}</b></div>
       <div><span>Urgensi</span>@include('partials.chip', ['v' => $ticket->urgency])</div>
       <div><span>Pelapor</span><b>{{ $ticket->reporter?->name ?? '-' }}</b></div>
+      <div><span>Tanggal Masuk</span><b>{{ $ticket->created_at->translatedFormat('d M Y, H:i') }}</b></div>
+      <div><span>Mulai Perbaikan</span><b>{{ $ticket->started_at?->translatedFormat('d M Y, H:i') ?? 'Belum dimulai' }}</b></div>
+      <div><span>Selesai Perbaikan</span><b style="{{ $ticket->finished_at ? 'color:#047857' : '' }}">{{ $ticket->finished_at?->translatedFormat('d M Y, H:i') ?? 'Belum selesai' }}</b></div>
       <div><span>Batas waktu</span><b>{{ $ticket->due_at?->translatedFormat('d M Y H:i') ?? '-' }}</b></div>
       <div><span>Tindakan</span><b>{{ $ticket->action ?? '-' }}</b></div>
-      <div><span>Sparepart</span><b>{{ $ticket->spareparts ?? '-' }}</b></div>
+      <div style="grid-column:1 / -1"><span>Sparepart</span><b>{{ $ticket->spareparts ?? '-' }}</b></div>
     </div>
     <div style="margin-top:20px"><span class="tiny">Progress pekerjaan · {{ $ticket->progress }}%</span>
       <div class="progress"><i style="width:{{ $ticket->progress }}%"></i></div></div>

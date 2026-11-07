@@ -36,20 +36,25 @@ class ScheduleController extends Controller
     public function calendar(Request $r)
     {
         $month = Carbon::createFromFormat('Y-m', $r->get('bulan', now()->format('Y-m')))->startOfMonth();
-        $items = MaintenanceSchedule::with('machine')
+        $items = MaintenanceSchedule::with(['machine', 'technician'])
             ->whereBetween('due_date', [$month->copy(), $month->copy()->endOfMonth()])
             ->orderBy('due_date')->get();
 
+        $machines = Machine::orderBy('category')->orderBy('name')->get(['id', 'code', 'name', 'category', 'model', 'location']);
+        $technicians = User::where('role', 'teknisi')->where('status', 'aktif')->orderBy('name')->get();
+
         return view('manajemen.jadwal.kalender', [
-            'month' => $month,
-            'byDay' => $items->groupBy(fn ($s) => $s->due_date->day),
-            'items' => $items,
+            'month'       => $month,
+            'byDay'       => $items->groupBy(fn ($s) => $s->due_date->day),
+            'items'       => $items,
+            'machines'    => $machines,
+            'technicians' => $technicians,
         ]);
     }
 
     public function create()
     {
-        return view('manajemen.jadwal.form', [
+        return view('manajemen.jadwal.create', [
             'machines'    => Machine::orderBy('category')->orderBy('name')->get(['id', 'code', 'name', 'category', 'model', 'location']),
             'technicians' => User::where('role', 'teknisi')->where('status', 'aktif')->orderBy('name')->get(),
         ]);
@@ -273,10 +278,18 @@ class ScheduleController extends Controller
             $data['completed_at'] = null;
         }
 
+        $oldTechId = $jadwal->technician_id;
         $jadwal->update($data);
+        $jadwal->load(['machine', 'technician']);
+
+        $waMsg = '';
+        if (!empty($data['technician_id']) && $data['technician_id'] != $oldTechId && $jadwal->technician) {
+            $wa = \App\Services\WhatsAppService::sendScheduleReminder($jadwal, 'Penugasan Baru');
+            $waMsg = $wa['success'] ? ' & notifikasi WA terkirim' : ($jadwal->technician->whatsapp ? " (WA: {$wa['message']})" : ' (Teknisi belum mengisi WA)');
+        }
 
         return redirect()->route('manajemen.jadwal.index')
-            ->with('ok', "Jadwal maintenance mesin {$jadwal->machine->label} berhasil diperbarui.");
+            ->with('ok', "Jadwal maintenance mesin {$jadwal->machine->label} berhasil diperbarui{$waMsg}.");
     }
 
     public function destroy(MaintenanceSchedule $jadwal)

@@ -1,3 +1,7 @@
+@php
+  $technicians = $technicians ?? \App\Models\User::where('role', 'teknisi')->where('status', 'aktif')->orderBy('name')->get();
+  $machines = $machines ?? \App\Models\Machine::orderBy('category')->orderBy('name')->get(['id', 'code', 'name', 'category', 'model', 'location']);
+@endphp
 <button type="button" class="btn primary" onclick="openQuickScheduleModal()">@include('partials.icon', ['n' => 'plus']) Tambah Jadwal</button>
 
 <div id="quickScheduleModal" class="quick-modal-backdrop" onclick="if(event.target===this) closeQuickScheduleModal()">

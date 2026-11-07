@@ -13,9 +13,7 @@
       </div>
       <h1 style="margin:0">Daftar Teknisi</h1>
     </div>
-    <a class="btn primary" href="{{ route('manajemen.teknisi.create') }}">
-      @include('partials.icon', ['n' => 'plus']) Daftarkan Teknisi Baru
-    </a>
+    @include('partials.quick-technician-modal')
   </div>
   <p style="margin:0" class="muted small">Pantau beban kerja teknisi dan daftarkan teknisi baru yang dapat langsung aktif bertugas.</p>
 </div>
@@ -132,20 +130,41 @@
       </div>
 
       <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        @if ($t->whatsapp)
-          <span class="badge-wa" style="font-size:11px">
-            @include('partials.icon', ['n' => 'whatsapp']) {{ $t->whatsapp }}
-          </span>
-        @else
-          <span class="badge-wa-empty">No WA belum ada</span>
-        @endif
-        <div class="row" style="gap:6px">
-          <a class="btn-action" href="{{ route('manajemen.pengguna.edit', $t) }}" title="Ubah nama pengguna atau data akun teknisi">
-            @include('partials.icon', ['n' => 'edit']) <span>Ubah Nama</span>
+        <div>
+          @if ($t->whatsapp)
+            <span class="badge-wa" style="font-size:11px">
+              @include('partials.icon', ['n' => 'whatsapp']) {{ $t->whatsapp }}
+            </span>
+          @else
+            <span class="badge-wa-empty">No WA belum ada</span>
+          @endif
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:6px">
+          <a class="btn-icon detail" href="{{ route('manajemen.teknisi.show', $t) }}" title="Lihat Profil & Riwayat Pekerjaan">
+            @include('partials.icon', ['n' => 'eye'])
           </a>
-          <a class="btn-action primary" href="{{ route('manajemen.teknisi.show', $t) }}">
-            <span>Detail →</span>
+          <a class="btn-icon edit" href="{{ route('manajemen.pengguna.edit', $t) }}" title="Ubah Akun / Nama Teknisi">
+            @include('partials.icon', ['n' => 'edit'])
           </a>
+          @if ($t->whatsapp)
+            @php
+              $directWa = \App\Services\WhatsAppService::makeDirectLink($t->whatsapp, "Halo {$t->name}, salam dari manajemen SIMMES.");
+            @endphp
+            @if ($directWa)
+              <a href="{{ $directWa }}" target="_blank" rel="noopener noreferrer" class="btn-icon whatsapp" title="Chat WhatsApp Teknisi ({{ $t->whatsapp }})">
+                @include('partials.icon', ['n' => 'whatsapp'])
+              </a>
+            @endif
+          @endif
+          @if (!$t->is(auth()->user()))
+            <form method="POST" action="{{ route('manajemen.pengguna.destroy', $t) }}" style="display:inline;margin:0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun teknisi {{ $t->name }}?');">
+              @csrf
+              @method('DELETE')
+              <button class="btn-icon danger" type="submit" title="Hapus Akun Teknisi">
+                @include('partials.icon', ['n' => 'trash'])
+              </button>
+            </form>
+          @endif
         </div>
       </div>
     </div>

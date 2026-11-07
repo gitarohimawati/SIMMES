@@ -23,25 +23,32 @@ class TechnicianController extends Controller
 
     public function create()
     {
-        $suggestedNik = User::nextNik('teknisi');
-        return view('manajemen.teknisi.create', compact('suggestedNik'));
+        return view('manajemen.teknisi.create');
     }
 
     public function store(Request $r)
     {
         $d = $r->validate([
             'name'       => 'required|string|max:120',
-            'nik'        => 'nullable|string|max:30|unique:users,nik',
+            'nik'        => 'required|string|max:30|unique:users,nik',
             'email'      => 'required|email|max:255|unique:users,email',
-            'password'   => 'nullable|string|min:4|max:64',
+            'password'   => 'required|string|min:4|max:64',
             'department' => 'nullable|string|max:80',
             'bagian'     => 'nullable|string|max:80',
             'whatsapp'   => 'nullable|string|max:25',
+        ], [
+            'name.required'     => 'Nama lengkap wajib diisi.',
+            'nik.required'      => 'Nomor Induk Karyawan (NIK) wajib diisi manual sesuai standar perusahaan.',
+            'nik.unique'        => 'NIK ini sudah terdaftar pada pengguna lain.',
+            'email.required'    => 'Alamat email wajib diisi.',
+            'email.unique'      => 'Email ini sudah digunakan oleh akun lain.',
+            'password.required' => 'Kata sandi wajib diisi oleh manajemen.',
+            'password.min'      => 'Kata sandi minimal 4 karakter.',
         ]);
 
-        $nik = !empty($d['nik']) ? strtoupper(trim($d['nik'])) : User::nextNik('teknisi');
+        $nik = strtoupper(trim($d['nik']));
         $email = strtolower(trim($d['email']));
-        $plainPassword = !empty($d['password']) ? trim($d['password']) : $nik;
+        $plainPassword = trim($d['password']);
 
         $user = User::create([
             'name'        => trim($d['name']),

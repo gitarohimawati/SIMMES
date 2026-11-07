@@ -215,7 +215,7 @@
                 'status'         => $t->status,
                 'display_status' => $t->display_status,
                 'urgency'        => $t->urgency,
-                'date_formatted' => $t->created_at->translatedFormat('d M Y, H:i'),
+                'date_formatted' => $t->finished_at ? ('Selesai: ' . $t->finished_at->translatedFormat('d M Y, H:i')) : ($t->started_at ? ('Mulai: ' . $t->started_at->translatedFormat('d M Y, H:i')) : ('Masuk: ' . $t->created_at->translatedFormat('d M Y, H:i'))),
                 'complaint'      => $t->complaint,
                 'action'         => $t->action,
                 'spareparts'     => $t->spareparts,
@@ -703,15 +703,24 @@ function switchDashboardTab(tabId) {
       </div>
     </div>
 
-    <div class="dashboard-wa-foot" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+    <div class="dashboard-wa-foot" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <span class="tiny muted">Notifikasi dikirim langsung ke WhatsApp teknisi terdaftar.</span>
-      <form method="POST" action="{{ route('manajemen.jadwal.runReminders') }}" style="margin:0">
-        @csrf
-        <button type="submit" class="btn-action" style="font-size:12px;padding:5px 10px" title="Jalankan pengecekan pengingat hari ini">
-          @include('partials.icon', ['n' => 'clock'])
-          <span>Cek Pengingat Sekarang</span>
-        </button>
-      </form>
+      <div style="display:inline-flex;align-items:center;gap:6px">
+        <form method="POST" action="{{ route('manajemen.wa.testGateway') }}" style="margin:0">
+          @csrf
+          <button type="submit" class="btn-action primary" style="font-size:12px;padding:6px 12px;background:#16a34a;border-color:#16a34a" title="Kirim pesan uji coba ke WhatsApp Anda">
+            @include('partials.icon', ['n' => 'whatsapp'])
+            <span>Tes Gateway WA</span>
+          </button>
+        </form>
+        <form method="POST" action="{{ route('manajemen.jadwal.runReminders') }}" style="margin:0">
+          @csrf
+          <button type="submit" class="btn-action" style="font-size:12px;padding:6px 10px" title="Jalankan pengecekan pengingat hari ini">
+            @include('partials.icon', ['n' => 'clock'])
+            <span>Cek Pengingat</span>
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 </div>

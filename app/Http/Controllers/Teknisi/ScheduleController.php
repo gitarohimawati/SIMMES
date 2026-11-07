@@ -14,7 +14,7 @@ class ScheduleController extends Controller
             ->orderByRaw("CASE WHEN status = 'selesai' THEN 1 ELSE 0 END ASC")
             ->orderByRaw("CASE WHEN status = 'selesai' THEN COALESCE(completed_at, updated_at) ELSE updated_at END DESC")
             ->get();
-        return view('teknisi.jadwal', compact('schedules'));
+        return view('teknisi.jadwal.index', compact('schedules'));
     }
 
     /** Update progres 25/50/75/100 untuk pekerjaan rutin. */

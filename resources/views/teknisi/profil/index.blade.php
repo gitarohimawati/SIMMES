@@ -15,7 +15,7 @@
 <div class="tcard">
   <h3 style="font-size:16px;font-weight:800;margin-bottom:6px">Notifikasi WhatsApp</h3>
   <p class="muted small" style="margin-bottom:14px;line-height:1.4">
-    Nomor WhatsApp ini digunakan sistem SIMMES untuk mengirimkan notifikasi penugasan tiket perbaikan dan pengingat jadwal pemeliharaan secara otomatis.
+    Nomor WhatsApp ini digunakan sistem SIMMES untuk mengirimkan notifikasi penugasan tiket perbaikan dan pengingat jadwal maintenance secara otomatis.
   </p>
 
   <form method="POST" action="{{ route('teknisi.profil.update') }}">
@@ -28,20 +28,29 @@
 
     <label class="f" style="margin-top:14px">Nomor WhatsApp Aktif</label>
     <div style="position:relative">
-      <input class="input" name="whatsapp" type="tel" value="{{ old('whatsapp', $u->whatsapp) }}" placeholder="" required>
+      <input class="input" name="whatsapp" type="tel" value="{{ old('whatsapp', $u->whatsapp) }}" placeholder="Contoh: 08123456789" required>
     </div>
-    <div class="tiny" style="margin-top:4px;color:var(--ink3)">Gunakan format nomor lokal (08...) atau internasional (628...).</div>
 
     <label class="f" style="margin-top:14px">Bagian / Unit Kerja</label>
     <input class="input" name="bagian" value="{{ old('bagian', $u->bagian) }}" placeholder="">
 
-    <button type="submit" class="btn primary block" style="margin-top:16px">Simpan Nama & Profil</button>
+    <div class="profil-actions-centered" style="margin-top:22px">
+      <button type="submit" class="btn primary btn-profil-save" style="min-width:240px;justify-content:center;padding:12px 24px;font-size:14px;font-weight:700;border-radius:12px">
+        @include('partials.icon', ['n' => 'check']) Simpan Nama & Profil
+      </button>
+    </div>
   </form>
 
-<form method="POST" action="{{ route('logout') }}" style="margin-top:16px">
-  @csrf
-  <button class="btn block" style="justify-content:center;color:var(--r700)">Keluar (Logout)</button>
-</form>
+  <form id="testWaForm" method="POST" action="{{ route('teknisi.profil.testWa') }}" style="display:none">@csrf</form>
+
+  <div class="profil-actions-centered" style="margin-top:12px">
+    <form method="POST" action="{{ route('logout') }}" style="margin:0;width:auto">
+      @csrf
+      <button type="submit" class="btn btn-profil-logout" style="min-width:240px;justify-content:center;color:var(--r700);border-color:#fecdd3;background:#fff1f2;padding:11px 24px;font-size:13.5px;font-weight:600;border-radius:12px">
+        @include('partials.icon', ['n' => 'logout']) Keluar (Logout)
+      </button>
+    </form>
+  </div>
 
 <script>
 function testSystemAlert() {

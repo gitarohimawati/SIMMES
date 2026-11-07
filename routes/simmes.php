@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     // ================= MANAJEMEN =================
     Route::middleware('role:manajemen')->prefix('manajemen')->name('manajemen.')->group(function () {
         Route::get('/', [M\DashboardController::class, 'index'])->name('dashboard');
+        Route::post('wa/tes-gateway', [M\DashboardController::class, 'testWaGateway'])->name('wa.testGateway');
 
         Route::get('perbaikan', [M\TicketController::class, 'index'])->name('perbaikan.index');
         Route::get('perbaikan/baru', [M\TicketController::class, 'create'])->name('perbaikan.create');

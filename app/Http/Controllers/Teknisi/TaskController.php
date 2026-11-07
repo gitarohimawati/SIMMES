@@ -35,7 +35,7 @@ class TaskController extends Controller
                 ->orWhereHas('machine', fn ($m) => $m->where('code', 'like', "%$s%")->orWhere('name', 'like', "%$s%")));
         }
 
-        return view('teknisi.tugas', [
+        return view('teknisi.tugas.index', [
             'tickets'        => $q->get(),
             'filter'         => $filter,
             'availableCount' => $availableCount,
@@ -49,7 +49,7 @@ class TaskController extends Controller
     // Cek apakah sudah ada foto/media "sebelum" perbaikan
     $hasBefore = $ticket->media->where('phase', 'before')->isNotEmpty();
 
-    return view('teknisi.detail', compact('ticket', 'hasBefore'));
+    return view('teknisi.tugas.detail', compact('ticket', 'hasBefore'));
 }
 
     /** "Ambil Tugas Ini" (Siapa cepat dia dapat). */

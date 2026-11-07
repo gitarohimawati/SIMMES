@@ -99,6 +99,11 @@
       <tr>
         <td>
           <b>{{ $t->created_at ? $t->created_at->translatedFormat('d M Y') : '-' }}</b>
+          @if ($t->finished_at)
+            <div class="tiny" style="color:#047857;font-weight:700">Selesai: {{ $t->finished_at->translatedFormat('d M Y') }}</div>
+          @elseif ($t->started_at)
+            <div class="tiny muted">Mulai: {{ $t->started_at->translatedFormat('d M Y') }}</div>
+          @endif
           <div class="tiny muted">{{ $t->code }}</div>
         </td>
         <td>{{ ucfirst($t->type) }}</td>

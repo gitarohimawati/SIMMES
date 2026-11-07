@@ -12,8 +12,34 @@ class WhatsAppService
 {
     /**
      * Normalisasi nomor telepon ke format internasional WhatsApp (misal: 6281234567890).
+     * Mendukung nomor tunggal atau multi-nomor dipisahkan koma.
      */
     public static function normalizeNumber(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        // Jika berisi multi-nomor (dipisahkan koma), normalisasi masing-masing nomor
+        if (str_contains($phone, ',')) {
+            $parts = explode(',', $phone);
+            $normalizedParts = [];
+            foreach ($parts as $p) {
+                $norm = self::normalizeSingleNumber($p);
+                if ($norm) {
+                    $normalizedParts[] = $norm;
+                }
+            }
+            return !empty($normalizedParts) ? implode(',', array_unique($normalizedParts)) : null;
+        }
+
+        return self::normalizeSingleNumber($phone);
+    }
+
+    /**
+     * Normalisasi nomor tunggal ke format 628...
+     */
+    public static function normalizeSingleNumber(?string $phone): ?string
     {
         if (!$phone) {
             return null;
@@ -87,16 +113,23 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::timeout(10)
+            $response = Http::withoutVerifying()
+                ->timeout(12)
                 ->withHeaders([
                     'Authorization' => $token,
                 ])
+                ->asForm()
                 ->post($gatewayUrl, [
-                    'target'  => $normalized,
-                    'message' => $message,
+                    'target'      => $normalized,
+                    'message'     => $message,
+                    'countryCode' => '62',
                 ]);
 
-            if ($response->successful()) {
+            $json = $response->json();
+            // Fonnte mengembalikan status HTTP 200 namun dengan body {"status": false, "reason": "device disconnected"} jika perangkat WA offline/terputus
+            $fonnteSuccess = $response->successful() && is_array($json) && ($json['status'] ?? false) === true;
+
+            if ($fonnteSuccess) {
                 Log::info("[WhatsApp Gateway Berhasil] Terkirim ke {$name} ({$normalized}).");
                 return [
                     'success'   => true,
@@ -106,16 +139,24 @@ class WhatsAppService
                 ];
             }
 
-            Log::error("[WhatsApp Gateway Error] Response: " . $response->body());
+            $reason = is_array($json) && !empty($json['reason']) 
+                ? $json['reason'] 
+                : ($response->body() ?: 'HTTP ' . $response->status());
+
+            Log::error("[WhatsApp Gateway Gagal] Response dari {$gatewayUrl} untuk {$name} ({$normalized}): {$reason}");
             return [
-                'success' => false,
-                'message' => "Gateway WhatsApp mengembalikan status: " . $response->status(),
+                'success'   => false,
+                'simulated' => false,
+                'phone'     => $normalized,
+                'message'   => "Gateway WhatsApp gagal mengirim ({$reason})",
             ];
         } catch (\Throwable $e) {
             Log::error("[WhatsApp Gateway Exception] " . $e->getMessage());
             return [
-                'success' => false,
-                'message' => "Gagal menghubungi gateway WhatsApp: " . $e->getMessage(),
+                'success'   => false,
+                'simulated' => false,
+                'phone'     => $normalized,
+                'message'   => "Gagal menghubungi gateway WhatsApp: " . $e->getMessage(),
             ];
         }
     }
@@ -320,7 +361,8 @@ class WhatsAppService
     {
         $ticket->loadMissing(['machine', 'reporter']);
         $due = $ticket->due_at ? $ticket->due_at->translatedFormat('d F Y, H:i') : '-';
-        $claimUrl = url("/teknisi/tugas/{$ticket->id}");
+        $baseUrl = rtrim(config('app.url') ?: url('/'), '/');
+        $claimUrl = "{$baseUrl}/teknisi/tugas/{$ticket->id}";
         $reporterName = $ticket->reporter?->name ?? 'Operator Lapangan';
 
         $urgencyBadges = [
@@ -330,8 +372,8 @@ class WhatsAppService
         ];
         $urgencyLabel = $urgencyBadges[$ticket->urgency] ?? strtoupper($ticket->urgency);
 
-        return "⚡ *SIMMES - LAPORAN KERUSAKAN MESIN BARU!*\n"
-            . "*(TUGAS TERBUKA: SIAPA CEPAT DIA DAPAT)*\n\n"
+        return "🚨 *SIMMES - PEMBERITAHUAN TIKET PERBAIKAN BARU*\n"
+            . "*(SISTEM: SIAPA CEPAT DIA DAPAT)*\n\n"
             . "Halo Rekan Teknisi,\n"
             . "Terdapat insiden kendala mesin baru yang membutuhkan penanganan:\n\n"
             . "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -344,9 +386,9 @@ class WhatsAppService
             . "━━━━━━━━━━━━━━━━━━━━━\n\n"
             . "💥 *Keluhan Kerusakan:*\n"
             . "\"{$ticket->complaint}\"\n\n"
-            . "👉 *KLIK LINK UNTUK LANGSUNG AMBIL TUGAS:*\n"
+            . "👉 *Silakan buka website untuk mengambil tugas:*\n"
             . "{$claimUrl}\n\n"
-            . "*(Tugas akan otomatis terkunci ke teknisi pertama yang mengambil tugas).*";
+            . "*(Sistem Siapa Cepat Dia Dapat: Tugas terbuka untuk semua teknisi. Silakan buka website di atas untuk mengambil tugas. Setelah tugas diambil oleh salah satu teknisi, tiket otomatis terkunci).*";
     }
 
     /**
@@ -359,7 +401,8 @@ class WhatsAppService
     }
 
     /**
-     * Siarkan notifikasi laporan tiket baru ke semua teknisi yang terdaftar dan ke WA Saya (Pengelola/Teknisi).
+     * Siarkan notifikasi laporan tiket baru ke semua teknisi yang terdaftar dan ke WA Saya (Pengelola/Teknisi)
+     * secara serentak (simultan) dalam satu pemanggilan multi-target Fonnte.
      */
     public static function broadcastToAllTechnicians(Ticket $ticket): int
     {
@@ -404,15 +447,31 @@ class WhatsAppService
             }
         }
 
-        $count = 0;
-        foreach ($targets as $phone => $name) {
-            $res = self::send($phone, $msg);
-            if (!empty($res['success'])) {
-                $count++;
-            }
+        if ($targets->isEmpty()) {
+            \Illuminate\Support\Facades\Log::warning("[WhatsApp Broadcast] Tidak ada nomor tujuan teknisi aktif untuk tiket {$ticket->code}.");
+            session()->flash('broadcast_status', [
+                'success' => false,
+                'count'   => 0,
+                'message' => 'Tidak ada nomor WhatsApp teknisi aktif yang terdaftar di sistem.',
+            ]);
+            return 0;
         }
 
-        \Illuminate\Support\Facades\Log::info("[WhatsApp Broadcast Perbaikan Mesin] Tiket {$ticket->code} disiarkan ke {$count} nomor tujuan: " . implode(', ', array_keys($targets->toArray())));
+        $allNumbers = array_keys($targets->toArray());
+        $multiTargetString = implode(',', $allNumbers);
+
+        // Kirim sekaligus secara bareng ke Fonnte menggunakan koma
+        $res = self::send($multiTargetString, $msg);
+        $count = !empty($res['success']) ? count($allNumbers) : 0;
+
+        session()->flash('broadcast_status', [
+            'success' => !empty($res['success']),
+            'message' => $res['message'] ?? '',
+            'count'   => count($allNumbers),
+            'targets' => implode(', ', $allNumbers),
+        ]);
+
+        \Illuminate\Support\Facades\Log::info("[WhatsApp Broadcast Serentak] Tiket {$ticket->code} disiarkan ke " . count($allNumbers) . " nomor ({$multiTargetString}). Hasil: " . json_encode($res));
 
         return $count;
     }

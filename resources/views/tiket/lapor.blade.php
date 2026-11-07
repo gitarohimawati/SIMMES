@@ -35,8 +35,9 @@
     <input id="lapor-file-input" type="file" name="files[]" accept="image/*,video/*" multiple hidden>
   </label>
   <div id="lapor-preview-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px"></div>
-  <div class="form-actions-end" style="display:flex;justify-content:flex-end;margin-top:22px">
-    <button class="btn primary btn-compact" type="submit" style="padding:10px 22px;font-size:13.5px">Kirim Laporan</button>
+  <div class="form-actions-end" style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:22px">
+    <a class="btn" href="{{ $user->isTeknisi() ? route('teknisi.home') : route('manajemen.perbaikan.index') }}" style="padding:10px 18px;font-size:13px;border-color:var(--line);color:var(--ink2);margin:0!important">Batal</a>
+    <button class="btn primary btn-compact" type="submit" style="padding:10px 22px;font-size:13.5px;margin:0!important">Kirim Laporan</button>
   </div>
 </form>
 @if (!$user->isTeknisi())

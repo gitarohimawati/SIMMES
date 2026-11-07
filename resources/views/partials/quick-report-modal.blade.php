@@ -1,3 +1,6 @@
+@php
+  $machines = $machines ?? \App\Models\Machine::orderBy('category')->orderBy('name')->get(['id', 'code', 'name', 'category', 'model', 'location']);
+@endphp
 @if (!isset($hideTrigger) || !$hideTrigger)
 <button type="button" class="{{ $triggerClass ?? 'btn primary' }}" onclick="openQuickReportModal()">
   @include('partials.icon', ['n' => 'plus']) <span>{{ $triggerLabel ?? 'Lapor' }}</span>

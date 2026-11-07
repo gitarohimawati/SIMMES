@@ -99,22 +99,21 @@
       <span class="tiny">{{ $t->created_at->translatedFormat('d M Y, H:i') }}</span>
     </div>
 
-    {{-- Tombol Aksi CRUD --}}
-    <div class="row between" style="border-top:1px solid var(--line);padding-top:10px;margin-top:4px">
-      <button type="button" class="btn small" data-ticket="{{ json_encode($tPayload) }}" onclick="openTicketDetail(JSON.parse(this.dataset.ticket))" style="padding:6px 12px;font-size:12px;border-radius:10px">
-        @include('partials.icon', ['n' => 'eye']) Detail
-      </button>
-
-      <div class="row" style="gap:6px">
-        <a class="btn small" href="{{ route('teknisi.laporan.edit', $t) }}" style="padding:6px 12px;font-size:12px;border-radius:10px;color:var(--warn)">
-          @include('partials.icon', ['n' => 'edit']) Edit
+    {{-- Tombol Aksi CRUD (Icon Modern) --}}
+    <div class="row between" style="border-top:1px solid var(--line);padding-top:10px;margin-top:4px;align-items:center">
+      <span class="tiny muted" style="font-weight:600">Aksi Laporan:</span>
+      <div style="display:inline-flex;align-items:center;gap:6px">
+        <button type="button" class="btn-icon detail" data-ticket="{{ json_encode($tPayload) }}" onclick="openTicketDetail(JSON.parse(this.dataset.ticket))" title="Lihat Detail & Foto">
+          @include('partials.icon', ['n' => 'eye'])
+        </button>
+        <a class="btn-icon edit" href="{{ route('teknisi.laporan.edit', $t) }}" title="Edit Laporan Perbaikan">
+          @include('partials.icon', ['n' => 'edit'])
         </a>
-
         <form method="POST" action="{{ route('teknisi.laporan.destroy', $t) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus laporan {{ $t->code }}?');" style="margin:0">
           @csrf
           @method('DELETE')
-          <button class="btn small" type="submit" style="padding:6px 12px;font-size:12px;border-radius:10px;color:var(--r700);border-color:var(--rose200);background:var(--rose50)">
-            @include('partials.icon', ['n' => 'trash']) Hapus
+          <button class="btn-icon danger" type="submit" title="Hapus Laporan Perbaikan">
+            @include('partials.icon', ['n' => 'trash'])
           </button>
         </form>
       </div>

@@ -48,4 +48,36 @@ class DashboardController extends Controller
 
         return view('manajemen.dashboard', compact('stats', 'tickets', 'trend', 'upcoming', 'completedSchedules'));
     }
+
+    /**
+     * Uji coba pengiriman pesan WhatsApp Gateway secara langsung.
+     */
+    public function testWaGateway()
+    {
+        $user = auth()->user();
+        $target = $user->whatsapp ?: (config('services.whatsapp.target') ?: env('WA_TARGET_PHONE'));
+
+        if (empty($target)) {
+            return back()->with('err', 'Nomor WhatsApp belum diatur di profil Anda atau di file .env (WA_TARGET_PHONE).');
+        }
+
+        $nowStr = now()->translatedFormat('d M Y, H:i');
+        $msg = "✅ *SIMMES - UJI COBA KONEKSI WHATSAPP GATEWAY*\n\n"
+            . "Halo *{$user->name}*,\n"
+            . "Pesan ini membuktikan bahwa Gateway WhatsApp SIMMES telah berhasil terhubung dengan perangkat pengirim dan siap mengirim notifikasi perbaikan serta pemeliharaan mesin.\n\n"
+            . "🕒 Waktu Uji Coba: {$nowStr} WIB\n"
+            . "📱 Nomor Tujuan: {$target}\n\n"
+            . "_SIMMES · Sistem Informasi Maintenance Mesin_";
+
+        $res = \App\Services\WhatsAppService::send($target, $msg);
+
+        if ($res['success']) {
+            $text = ($res['simulated'] ?? false)
+                ? "Simulasi kirim WA dicatat di log sistem (Token belum diatur di .env)."
+                : "Pesan uji coba WhatsApp BERHASIL dikirim ke {$target}!";
+            return back()->with('ok', $text);
+        }
+
+        return back()->with('err', "Uji coba WhatsApp gagal: {$res['message']}");
+    }
 }

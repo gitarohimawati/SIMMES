@@ -50,13 +50,18 @@
 
       <div class="grid g2" style="gap:12px">
         <div>
-          <label class="f" style="margin:0 0 6px">Lokasi Penempatan <span style="color:var(--r600)">*</span></label>
-          <input class="input" name="location" value="{{ old('location') }}" placeholder="Contoh: Produksi A, Lantai 1" required>
+          <label class="f" style="margin:0 0 6px">Servis Terakhir (Opsional)</label>
+          <input class="input" type="date" name="last_service_at" value="{{ old('last_service_at') }}" placeholder="Tanggal servis sebelumnya">
         </div>
         <div>
           <label class="f" style="margin:0 0 6px">Kondisi</label>
           <input class="input" name="condition" value="{{ old('condition', 'Baik') }}" placeholder="Contoh: Baik / Siap Pakai">
         </div>
+      </div>
+
+      <div>
+        <label class="f" style="margin:0 0 6px">Lokasi Penempatan <span style="color:var(--r600)">*</span></label>
+        <input class="input" name="location" value="{{ old('location') }}" placeholder="Contoh: Produksi A, Lantai 1" required>
       </div>
 
       <div class="grid g2" style="gap:12px">

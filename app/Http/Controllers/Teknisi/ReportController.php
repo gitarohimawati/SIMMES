@@ -190,9 +190,10 @@ class ReportController extends Controller
         $ticket->log('Dilaporkan', "Laporan dibuat oleh teknisi {$user->name} ({$machine->label}) - Siapa cepat dia dapat");
         $machine->update(['status' => $status === 'selesai' ? 'aktif' : 'dilaporkan']);
 
-        // Siarkan notifikasi WhatsApp ke semua teknisi
+        // Siarkan notifikasi WhatsApp ke supervisor & teknisi
+        \App\Services\WhatsAppService::broadcastToAllTechnicians($ticket);
+
         if ($ticket->technician_id === null) {
-            \App\Services\WhatsAppService::broadcastToAllTechnicians($ticket);
             return redirect()->route('teknisi.lapor.sukses', $ticket);
         }
 
@@ -279,7 +280,10 @@ class ReportController extends Controller
         // Update status mesin di manajemen
         if ($newStatus === 'selesai') {
             if (!Ticket::where('machine_id', $machine->id)->where('id', '!=', $ticket->id)->where('status', '!=', 'selesai')->exists()) {
-                $machine->update(['status' => 'aktif']);
+                $machine->update([
+                    'status'          => 'aktif',
+                    'last_service_at' => $ticket->finished_at ?? now(),
+                ]);
             }
         } else {
             $machine->update(['status' => $newStatus === 'diproses' ? 'diproses' : 'dilaporkan']);

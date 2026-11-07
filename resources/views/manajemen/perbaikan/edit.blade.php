@@ -99,6 +99,20 @@
       </div>
 
       <div>
+        <label class="f">Tanggal Mulai Perbaikan</label>
+        <input class="input" type="datetime-local" name="started_at" value="{{ old('started_at', $ticket->started_at?->format('Y-m-d\TH:i')) }}">
+        <span class="tiny muted">Waktu teknisi mulai melakukan perbaikan.</span>
+        @error('started_at') <div class="err">{{ $message }}</div> @enderror
+      </div>
+
+      <div>
+        <label class="f">Tanggal Selesai Perbaikan</label>
+        <input class="input" type="datetime-local" name="finished_at" value="{{ old('finished_at', $ticket->finished_at?->format('Y-m-d\TH:i')) }}">
+        <span class="tiny muted">Waktu mesin dinyatakan selesai & normal.</span>
+        @error('finished_at') <div class="err">{{ $message }}</div> @enderror
+      </div>
+
+      <div>
         <label class="f">Progress Perbaikan (%)</label>
         <input class="input" type="number" min="0" max="100" name="progress" value="{{ old('progress', $ticket->progress) }}" placeholder="0 - 100">
         <span class="tiny muted">0: Belum mulai, 25: Foto sebelum, 50: Pengerjaan, 75: Foto sesudah, 100: Selesai.</span>

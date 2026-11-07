@@ -89,6 +89,7 @@ class MachineController extends Controller
             'model' => 'nullable|max:80',
             'serial_number' => 'nullable|max:80',
             'purchase_date' => 'nullable|date',
+            'last_service_at' => 'nullable|date',
             'location' => 'required|max:80',
             'condition' => 'nullable|max:120',
             'maintenance_interval_months' => 'required|integer|min:1|max:60',

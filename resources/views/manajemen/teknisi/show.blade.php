@@ -25,10 +25,19 @@
   </div>
 </div>
 <div class="card tablewrap"><h3>Pekerjaan terbaru</h3>
-  <table><thead><tr><th>Tiket</th><th>Mesin</th><th>Progress</th><th>Status</th></tr></thead><tbody>
+  <table><thead><tr><th>Tiket</th><th>Mesin</th><th>Progress</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody>
   @forelse ($tickets as $t)
-    <tr><td><a class="link" href="{{ route('manajemen.perbaikan.show', $t) }}">{{ $t->code }}</a></td><td>{{ $t->machine->label }}</td>
-    <td><div class="progress"><i style="width:{{ $t->progress }}%"></i></div></td><td>@include('partials.chip', ['v' => $t->display_status])</td></tr>
-  @empty <tr><td colspan="4" class="empty">Belum ada pekerjaan.</td></tr> @endforelse
+    <tr>
+      <td><a class="link" href="{{ route('manajemen.perbaikan.show', $t) }}"><b>{{ $t->code }}</b></a></td>
+      <td>{{ $t->machine->label }}</td>
+      <td><div class="progress"><i style="width:{{ $t->progress }}%"></i></div></td>
+      <td>@include('partials.chip', ['v' => $t->display_status])</td>
+      <td style="text-align:right">
+        <a href="{{ route('manajemen.perbaikan.show', $t) }}" class="btn-icon detail" title="Lihat Detail Tiket">
+          @include('partials.icon', ['n' => 'eye'])
+        </a>
+      </td>
+    </tr>
+  @empty <tr><td colspan="5" class="empty">Belum ada pekerjaan.</td></tr> @endforelse
   </tbody></table></div>
 @endsection

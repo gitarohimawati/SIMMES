@@ -21,6 +21,7 @@
       <div><label class="f">Tipe / model</label><input class="input" name="model" value="{{ $f('model') }}"></div>
       <div><label class="f">Nomor seri (S/N)</label><input class="input" name="serial_number" value="{{ $f('serial_number') }}"></div>
       <div><label class="f">Tanggal beli</label><input class="input" type="date" name="purchase_date" value="{{ old('purchase_date', $machine->purchase_date?->format('Y-m-d')) }}"></div>
+      <div><label class="f">Servis terakhir</label><input class="input" type="date" name="last_service_at" value="{{ old('last_service_at', $machine->last_service_at?->format('Y-m-d')) }}"></div>
       <div><label class="f">Lokasi</label><input class="input" name="location" value="{{ $f('location') }}" required></div>
       <div><label class="f">Kondisi</label><input class="input" name="condition" value="{{ $f('condition') }}"></div>
       <div><label class="f">Interval maintenance (bulan)</label><input class="input" type="number" min="1" name="maintenance_interval_months" value="{{ $f('maintenance_interval_months') }}" required></div>

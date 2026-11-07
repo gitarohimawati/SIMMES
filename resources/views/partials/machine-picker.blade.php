@@ -21,7 +21,7 @@
              id="machine_name" 
              name="machine_name" 
              value="{{ $initName }}" 
-             placeholder="Cari mesin (minimal 2 huruf, misal: Press, CNC, Pompa)..."
+             placeholder="Cari nama mesin"
              autocomplete="off" 
              required
              style="padding-right:38px">
@@ -90,12 +90,12 @@
   <div class="row" style="gap:10px;margin-top:12px">
     <div style="flex:1">
       <label class="f" style="margin-top:0">Kode Mesin (Opsional)</label>
-      <input class="input" id="machine_code" name="machine_code" value="{{ $initCode }}" placeholder="Contoh: MSN-014">
+      <input class="input" id="machine_code" name="machine_code" value="{{ $initCode }}" placeholder="MSN-014">
       @error('machine_code') <div class="err">{{ $message }}</div> @enderror
     </div>
     <div style="flex:1">
       <label class="f" style="margin-top:0">Lokasi Mesin</label>
-      <input class="input" id="location" name="location" value="{{ $initLoc }}" placeholder="Contoh: Produksi A, Lantai 1">
+      <input class="input" id="location" name="location" value="{{ $initLoc }}" placeholder="Produksi">
       @error('location') <div class="err">{{ $message }}</div> @enderror
     </div>
   </div>

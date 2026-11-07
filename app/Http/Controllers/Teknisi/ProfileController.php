@@ -12,7 +12,7 @@ class ProfileController extends Controller
     {
         $u = auth()->user();
         $total = Ticket::where('technician_id', $u->id)->where('status', 'selesai')->count();
-        return view('teknisi.profil', compact('u', 'total'));
+        return view('teknisi.profil.index', compact('u', 'total'));
     }
 
     public function update(Request $r)

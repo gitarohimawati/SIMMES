@@ -34,9 +34,9 @@
   <div id="preview-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px"></div>
   @error('files.*') <div class="err">{{ $message }}</div> @enderror
 
-  <div class="form-actions-end" style="margin-top:24px;display:flex;justify-content:flex-end;align-items:center;gap:10px">
-    <a class="btn" href="{{ route('teknisi.laporan.index') }}" style="padding:9px 16px;font-size:13px">Batal</a>
-    <button class="btn primary btn-compact" type="submit" style="padding:9px 20px;font-size:13px">Kirim Laporan</button>
+  <div class="form-actions-end" style="margin-top:24px;display:flex;justify-content:flex-end;align-items:center;gap:8px">
+    <a class="btn" href="{{ route('teknisi.laporan.index') }}" style="padding:10px 18px;font-size:13px;border-color:var(--line);color:var(--ink2);margin:0!important">Batal</a>
+    <button class="btn primary btn-compact" type="submit" style="padding:10px 22px;font-size:13px;font-weight:700;margin:0!important">Kirim Laporan</button>
   </div>
 </form>
 

@@ -49,7 +49,7 @@
             'status'         => $t->status,
             'display_status' => $t->display_status,
             'urgency'        => $t->urgency,
-            'date_formatted' => $t->created_at->translatedFormat('d M Y'),
+            'date_formatted' => $t->finished_at ? ('Selesai: ' . $t->finished_at->translatedFormat('d M Y')) : ($t->started_at ? ('Mulai: ' . $t->started_at->translatedFormat('d M Y')) : ('Dilaporkan: ' . $t->created_at->translatedFormat('d M Y'))),
             'complaint'      => $t->complaint,
             'action'         => $t->action,
             'spareparts'     => $t->spareparts,
@@ -62,7 +62,14 @@
       <tr>
         <td><b>{{ $t->code }}</b><div class="tiny">{{ ucfirst($t->type) }}</div></td>
         <td>{{ $t->machine->label }}</td>
-        <td>{{ $t->created_at->translatedFormat('d M Y') }}</td>
+        <td>
+          <b>{{ $t->created_at->translatedFormat('d M Y') }}</b>
+          @if ($t->finished_at)
+            <div class="tiny" style="color:#047857;font-weight:700">Selesai: {{ $t->finished_at->translatedFormat('d M Y') }}</div>
+          @elseif ($t->started_at)
+            <div class="tiny muted">Mulai: {{ $t->started_at->translatedFormat('d M Y') }}</div>
+          @endif
+        </td>
         <td>@include('partials.chip', ['v' => $t->urgency])</td>
         <td>
           @if ($t->technician)
