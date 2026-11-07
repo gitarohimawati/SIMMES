@@ -324,6 +324,51 @@ class WhatsAppService
     }
 
     /**
+     * Pesan laporan bahwa teknisi telah menyelesaikan pekerjaan maintenance.
+     */
+    public static function buildScheduleCompletedMessage(MaintenanceSchedule $schedule): string
+    {
+        $schedule->loadMissing(['machine', 'technician']);
+        $techName    = $schedule->technician?->name ?? 'Teknisi';
+        $machineName = $schedule->machine?->name ?? 'Mesin';
+        $machineCode = $schedule->machine?->code ?? '-';
+        $location    = $schedule->machine?->location ?? '-';
+        $task        = $schedule->task;
+        $doneDate    = now()->translatedFormat('l, d F Y · H:i') . ' WIB';
+        $parts       = $schedule->spareparts ? "\n🔧 *Suku Cadang/Bahan:* {$schedule->spareparts}" : '';
+        $notes       = $schedule->notes ? "\n📝 *Catatan Teknisi:* {$schedule->notes}" : '';
+
+        return "✅ *SIMMES - LAPORAN PEMELIHARAAN MESIN SELESAI*\n\n"
+            . "Halo Manajemen SIMMES,\n"
+            . "Pekerjaan pemeliharaan rutin berikut telah *SELESAI* dilaksanakan:\n\n"
+            . "━━━━━━━━━━━━━━━━━━━━━\n"
+            . "⚙️ *Mesin        :* {$machineName} ({$machineCode})\n"
+            . "📍 *Lokasi       :* {$location}\n"
+            . "🛠️ *Tugas        :* {$task}\n"
+            . "👤 *Teknisi      :* {$techName}\n"
+            . "⏰ *Waktu Selesai:* {$doneDate}"
+            . $parts
+            . $notes . "\n"
+            . "━━━━━━━━━━━━━━━━━━━━━\n\n"
+            . "📸 Dokumentasi foto sebelum dan sesudah perawatan telah diunggah ke sistem SIMMES.\n"
+            . "Status mesin telah aktif kembali dan siklus perawatan berikutnya otomatis dijadwalkan.\n\n"
+            . "_Laporan otomatis SIMMES Mobile Maintenance._";
+    }
+
+    /**
+     * Buat URL langsung ke WhatsApp untuk mengirimkan laporan selesai maintenance ke manajemen/grup.
+     */
+    public static function makeScheduleCompletedLink(MaintenanceSchedule $schedule, ?string $targetPhone = null): string
+    {
+        $msg = self::buildScheduleCompletedMessage($schedule);
+        if ($targetPhone) {
+            $link = self::makeDirectLink($targetPhone, $msg);
+            if ($link) return $link;
+        }
+        return 'https://api.whatsapp.com/send?text=' . rawurlencode($msg);
+    }
+
+    /**
      * Buat teks pesan uji coba / verifikasi koneksi WhatsApp teknisi.
      */
     public static function buildTestMessage(User $tech): string

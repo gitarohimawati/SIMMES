@@ -23,7 +23,7 @@ class TechnicianController extends Controller
 
     public function create()
     {
-        return view('manajemen.teknisi.create');
+        return redirect()->route('manajemen.teknisi.index', ['tambah' => 1]);
     }
 
     public function store(Request $r)

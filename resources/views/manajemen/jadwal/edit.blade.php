@@ -117,6 +117,36 @@
         <input class="input" name="spareparts" value="{{ old('spareparts', $jadwal->spareparts) }}" placeholder="Contoh: Oli hidrolik ISO VG 46 (5 Liter), Seal Kit">
         @error('spareparts') <div class="err">{{ $message }}</div> @enderror
       </div>
+
+      <div style="grid-column:1 / -1">
+        <label class="f">Catatan Hasil Pemeriksaan & Tindakan</label>
+        <textarea class="input" name="notes" rows="3" placeholder="Catatan teknisi mengenai perawatan atau pengecekan mesin">{{ old('notes', $jadwal->notes) }}</textarea>
+        @error('notes') <div class="err">{{ $message }}</div> @enderror
+      </div>
+
+      @if ($jadwal->before_url || $jadwal->after_url)
+        <div style="grid-column:1 / -1;background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:6px">
+          <b class="small" style="display:block;margin-bottom:10px">Dokumentasi Foto Pengerjaan:</b>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            @if ($jadwal->before_url)
+              <div>
+                <span class="tiny muted" style="display:block;margin-bottom:4px">Foto Sebelum:</span>
+                <a href="{{ $jadwal->before_url }}" target="_blank">
+                  <img src="{{ $jadwal->before_url }}" alt="Foto Sebelum" style="width:140px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">
+                </a>
+              </div>
+            @endif
+            @if ($jadwal->after_url)
+              <div>
+                <span class="tiny muted" style="display:block;margin-bottom:4px">Foto Sesudah:</span>
+                <a href="{{ $jadwal->after_url }}" target="_blank">
+                  <img src="{{ $jadwal->after_url }}" alt="Foto Sesudah" style="width:140px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">
+                </a>
+              </div>
+            @endif
+          </div>
+        </div>
+      @endif
     </div>
 
     <div class="form-actions-end" style="display:flex;justify-content:flex-end;gap:10px;margin-top:28px;padding-top:16px;border-top:1px solid var(--line)">

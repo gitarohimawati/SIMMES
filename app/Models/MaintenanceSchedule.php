@@ -29,6 +29,16 @@ class MaintenanceSchedule extends Model
         return $date;
     }
 
+    public function getBeforeUrlAttribute(): ?string
+    {
+        return $this->before_path ? \Illuminate\Support\Facades\Storage::url($this->before_path) : null;
+    }
+
+    public function getAfterUrlAttribute(): ?string
+    {
+        return $this->after_path ? \Illuminate\Support\Facades\Storage::url($this->after_path) : null;
+    }
+
     /** Tanggal jatuh tempo berikutnya setelah selesai (berdasar interval). */
     public function nextDue(): ?\Illuminate\Support\Carbon
     {

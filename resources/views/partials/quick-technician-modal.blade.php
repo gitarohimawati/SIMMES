@@ -126,5 +126,11 @@ document.addEventListener('keydown', function(e) {
     closeQuickTechnicianModal();
   }
 });
+
+@if (request('tambah') || $errors->any())
+document.addEventListener('DOMContentLoaded', function() {
+  openQuickTechnicianModal();
+});
+@endif
 </script>
 

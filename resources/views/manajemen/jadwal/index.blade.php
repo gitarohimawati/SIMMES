@@ -57,6 +57,22 @@
 
         $latestTicket = $s->ticket ?? $s->machine->tickets->first();
         $sPhotos = [];
+        if ($s->before_url) {
+            $sPhotos[] = [
+                'url'   => $s->before_url,
+                'phase' => 'before',
+                'kind'  => 'image',
+                'label' => 'Foto Sebelum Maintenance'
+            ];
+        }
+        if ($s->after_url) {
+            $sPhotos[] = [
+                'url'   => $s->after_url,
+                'phase' => 'after',
+                'kind'  => 'image',
+                'label' => 'Foto Sesudah Maintenance'
+            ];
+        }
         if ($latestTicket) {
             foreach ($latestTicket->media as $m) {
                 $sPhotos[] = [
@@ -82,7 +98,12 @@
             'machine'        => ['name' => $s->machine->name, 'code' => $s->machine->code, 'location' => $s->machine->location],
             'technician'     => $s->technician ? ['name' => $s->technician->name, 'whatsapp' => $s->technician->whatsapp] : null,
             'wa_url'         => $schedWaLink,
-            'ticket'         => $latestTicket ? ['action' => $latestTicket->action, 'spareparts' => $latestTicket->spareparts] : null,
+            'ticket'         => [
+                'action'     => $s->notes ?: ($latestTicket ? $latestTicket->action : null),
+                'spareparts' => $s->spareparts ?: ($latestTicket ? $latestTicket->spareparts : null),
+            ],
+            'notes'          => $s->notes,
+            'spareparts'     => $s->spareparts,
             'photos'         => $sPhotos,
             'logs'           => $sLogs,
             'show_url'       => route('manajemen.mesin.show', [$s->machine, 'from' => 'jadwal']),

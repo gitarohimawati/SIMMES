@@ -85,7 +85,10 @@ Route::middleware('auth')->group(function () {
         Route::post('tugas/{ticket}/selesai', [T\TaskController::class, 'finish'])->name('tugas.finish');
 
         Route::get('jadwal', [T\ScheduleController::class, 'index'])->name('jadwal');
-        Route::post('jadwal/{jadwal}/progress', [T\ScheduleController::class, 'progress'])->name('jadwal.progress');
+        Route::get('jadwal/{jadwal}', [T\ScheduleController::class, 'show'])->name('jadwal.show')->whereNumber('jadwal');
+        Route::post('jadwal/{jadwal}/upload', [T\ScheduleController::class, 'upload'])->name('jadwal.upload')->whereNumber('jadwal');
+        Route::post('jadwal/{jadwal}/progress', [T\ScheduleController::class, 'progress'])->name('jadwal.progress')->whereNumber('jadwal');
+        Route::post('jadwal/{jadwal}/selesai', [T\ScheduleController::class, 'complete'])->name('jadwal.selesai')->whereNumber('jadwal');
 
         // CRUD Laporan Teknisi
         Route::get('laporan', [T\ReportController::class, 'index'])->name('laporan.index');

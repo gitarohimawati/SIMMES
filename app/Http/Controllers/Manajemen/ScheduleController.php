@@ -266,6 +266,7 @@ class ScheduleController extends Controller
             'status'          => 'required|in:terjadwal,dikerjakan,selesai',
             'progress'        => 'nullable|integer|min:0|max:100',
             'spareparts'      => 'nullable|string|max:255',
+            'notes'           => 'nullable|string|max:1000',
         ]);
 
         $data['interval_label'] = !empty($data['interval_months']) ? $data['interval_months'] . ' bulan' : null;

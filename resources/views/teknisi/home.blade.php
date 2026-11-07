@@ -35,8 +35,8 @@
   <a class="btn primary block" href="{{ route('teknisi.laporan.create') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;padding:12px 10px">
     @include('partials.icon', ['n' => 'plus']) Buat Laporan
   </a>
-  <a class="btn block" href="{{ route('teknisi.laporan.index') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;padding:12px 10px">
-    @include('partials.icon', ['n' => 'file']) Riwayat Laporan
+  <a class="btn block" href="{{ route('teknisi.jadwal') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;padding:12px 10px">
+    @include('partials.icon', ['n' => 'calendar']) Jadwal Perawatan
   </a>
 </div>
 
