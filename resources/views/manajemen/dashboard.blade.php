@@ -1,9 +1,9 @@
 @extends('layouts.manager')
 @section('title', 'Dashboard')
 @section('content')
-<div class="top dashboard-top" style="margin-bottom:26px">
+<div class="top dashboard-top" style="align-items:center;margin-bottom:24px">
   <div>
-    <div class="dashboard-live-row" style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+    <div class="dashboard-live-row" style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
       <span class="live-status-pill">
         <span class="pulse-dot"></span>
         Sistem Monitoring Aktif
@@ -15,13 +15,13 @@
   </div>
   <div class="actions dashboard-top-actions">
     <a class="btn primary" href="{{ route('manajemen.jadwal.create') }}">
-      @include('partials.icon', ['n' => 'plus']) Buat Jadwal Baru
+      @include('partials.icon', ['n' => 'plus']) <span>Buat Jadwal</span>
     </a>
     <a class="btn" href="{{ route('manajemen.perbaikan.index') }}" style="background:#fff">
-      @include('partials.icon', ['n' => 'wrench']) Lapor Kerusakan
+      @include('partials.icon', ['n' => 'wrench']) <span>Lapor Kerusakan</span>
     </a>
     <a class="btn" href="{{ route('manajemen.laporan.index') }}" style="background:#fff">
-      @include('partials.icon', ['n' => 'file']) Rekap Laporan
+      @include('partials.icon', ['n' => 'file']) <span>Rekap Laporan</span>
     </a>
   </div>
 </div>
@@ -108,16 +108,16 @@
 {{-- PUSAT AKTIVITAS OPERASIONAL (TABBED UNIFIED VIEW) --}}
 <div class="card dashboard-card-section" style="margin-bottom:24px;padding:0;overflow:hidden">
   {{-- Card Header with Tab Switcher --}}
-  <div style="padding:20px 24px 18px;background:#fafaf9;border-bottom:1px solid var(--line)">
-    <div class="row between wrap" style="gap:12px;align-items:center;margin-bottom:16px">
+  <div class="dash-card-header">
+    <div class="dash-card-header-row">
       <div>
-        <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <h2 style="margin:0;font-size:18px;font-weight:800;color:var(--ink)">Pusat Aktivitas Operasional</h2>
           <span id="activeRoomBadge" class="chip" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5;font-size:11.5px;font-weight:800;transition:all .2s ease">
-            <span class="chip-dot" style="background:#dc2626"></span> Room: Tiket Perbaikan
+            <span class="chip-dot" style="background:#dc2626"></span> Ruang: Tiket Perbaikan
           </span>
         </div>
-        <p class="tiny muted" style="margin:3px 0 0">
+        <p class="tiny muted" style="margin:4px 0 0">
           Pilih tab di bawah untuk melihat tiket perbaikan, jadwal pemeliharaan rutin, atau riwayat pekerjaan yang telah selesai.
         </p>
       </div>
@@ -138,8 +138,8 @@
           </a>
         </div>
         <div id="action-tab-completed" class="dash-action-group" style="display:none">
-          <a class="btn-action" href="{{ route('manajemen.jadwal.index') }}" style="color:#047857;border-color:#a7f3d0">
-            <span>Semua Riwayat Maintenance →</span>
+          <a class="btn-action primary" href="{{ route('manajemen.jadwal.index') }}" style="background:#059669!important;border-color:#059669!important;color:#fff!important;font-weight:700">
+            <span style="color:#fff!important">Semua Riwayat Maintenance →</span>
           </a>
         </div>
       </div>
@@ -149,19 +149,22 @@
     <div class="dashboard-tabs-track">
       <button type="button" class="dash-tab-btn tab-red active" id="btn-tab-tickets" onclick="switchDashboardTab('tab-tickets')">
         @include('partials.icon', ['n' => 'wrench'])
-        <span>Tiket Kerusakan & Perbaikan</span>
+        <span class="tab-label-full">Tiket Kerusakan & Perbaikan</span>
+        <span class="tab-label-short">Tiket</span>
         <span class="dash-tab-badge">{{ $tickets->count() }}</span>
       </button>
 
       <button type="button" class="dash-tab-btn tab-amber" id="btn-tab-upcoming" onclick="switchDashboardTab('tab-upcoming')">
         @include('partials.icon', ['n' => 'calendar'])
-        <span>Jadwal Maintenance Mendatang</span>
+        <span class="tab-label-full">Jadwal Maintenance Mendatang</span>
+        <span class="tab-label-short">Jadwal</span>
         <span class="dash-tab-badge">{{ $upcoming->count() }}</span>
       </button>
 
       <button type="button" class="dash-tab-btn tab-green" id="btn-tab-completed" onclick="switchDashboardTab('tab-completed')">
         @include('partials.icon', ['n' => 'check'])
-        <span>Riwayat Selesai</span>
+        <span class="tab-label-full">Riwayat Selesai</span>
+        <span class="tab-label-short">Selesai</span>
         <span class="dash-tab-badge">{{ $completedSchedules->count() }}</span>
       </button>
     </div>
@@ -169,13 +172,14 @@
 
   {{-- TAB 1: TIKET KERUSAKAN & PERBAIKAN --}}
   <div id="pane-tab-tickets" class="dash-tab-pane" style="border-top:3.5px solid #be123c">
-    <div class="row between" style="padding:10px 20px;background:#fff1f2;border-bottom:1px solid #fecdd3;align-items:center">
+    <div class="row between dash-room-banner" style="padding:10px 20px;background:#fff1f2;border-bottom:1px solid #fecdd3;align-items:center;flex-wrap:wrap;gap:6px">
       <span style="font-size:12.5px;font-weight:700;color:#9f1239;display:flex;align-items:center;gap:7px">
         <span class="chip-dot" style="background:#be123c"></span> Ruang Operasional: Tiket Kerusakan & Perbaikan Aktif
       </span>
       <span class="tiny" style="color:#9f1239;font-weight:700">{{ $tickets->count() }} Laporan Butuh Penanganan</span>
     </div>
 
+    {{-- TAMPILAN DESKTOP: TABEL KOMPREHENSIF (LAYAR > 768px) --}}
     <div class="dashboard-table-wrap" style="border:0;border-radius:0">
       <table class="dashboard-table">
         <thead>
@@ -211,7 +215,7 @@
             }
             $tPayload = [
                 'code'           => $t->code,
-                'machine'        => ['name' => $t->machine->name, 'code' => $t->machine->code, 'location' => $t->machine->location],
+                'machine'        => ['name' => $t->machine?->name ?? 'Mesin', 'code' => $t->machine?->code ?? '-', 'location' => $t->machine?->location ?? '-'],
                 'status'         => $t->status,
                 'display_status' => $t->display_status,
                 'urgency'        => $t->urgency,
@@ -232,10 +236,10 @@
               <div class="tiny muted" style="margin-top:2px">{{ $t->created_at->diffForHumans() }}</div>
             </td>
             <td style="padding:14px">
-              <div style="font-weight:700;color:var(--ink)">{{ $t->machine->label }}</div>
+              <div style="font-weight:700;color:var(--ink)">{{ $t->machine?->label ?? $t->machine?->name ?? 'Mesin' }}</div>
               <div class="row" style="gap:6px;margin-top:4px">
-                <span class="badge-code">{{ $t->machine->code }}</span>
-                <span class="tiny muted">{{ $t->machine->location }}</span>
+                <span class="badge-code">{{ $t->machine?->code ?? '-' }}</span>
+                <span class="tiny muted">{{ $t->machine?->location ?? '-' }}</span>
               </div>
             </td>
             <td style="padding:14px">
@@ -287,7 +291,113 @@
       </table>
     </div>
 
-    <div style="padding:12px 20px;background:#fcfcfb;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    {{-- TAMPILAN MOBILE: KARTU SENTUH BERSIH & RAPI (LAYAR <= 768px) --}}
+    <div class="dashboard-mobile-list">
+      @forelse ($tickets as $t)
+        @php
+          $mTech = $t->technician;
+          $mWaLink = ($mTech && $mTech->whatsapp) 
+              ? \App\Services\WhatsAppService::makeDirectLink($mTech->whatsapp, \App\Services\WhatsAppService::buildTicketMessage($t, $mTech)) 
+              : null;
+          $mPhotos = [];
+          foreach ($t->media as $m) {
+              $mPhotos[] = [
+                  'url'   => $m->url,
+                  'phase' => $m->phase,
+                  'kind'  => $m->kind,
+                  'label' => $m->phase === 'after' ? 'Foto Sesudah Perbaikan' : ($m->phase === 'before' ? 'Foto Sebelum' : 'Foto Kendala Awal')
+              ];
+          }
+          $mLogs = [];
+          foreach ($t->logs as $l) {
+              $mLogs[] = ['label' => $l->label, 'note' => $l->note, 'time' => $l->created_at->translatedFormat('d M Y, H:i')];
+          }
+          $mPayload = [
+              'code'           => $t->code,
+              'machine'        => ['name' => $t->machine?->name ?? 'Mesin', 'code' => $t->machine?->code ?? '-', 'location' => $t->machine?->location ?? '-'],
+              'status'         => $t->status,
+              'display_status' => $t->display_status,
+              'urgency'        => $t->urgency,
+              'date_formatted' => $t->finished_at ? ('Selesai: ' . $t->finished_at->translatedFormat('d M Y, H:i')) : ($t->started_at ? ('Mulai: ' . $t->started_at->translatedFormat('d M Y, H:i')) : ('Masuk: ' . $t->created_at->translatedFormat('d M Y, H:i'))),
+              'complaint'      => $t->complaint,
+              'action'         => $t->action,
+              'spareparts'     => $t->spareparts,
+              'technician'     => $mTech ? ['name' => $mTech->name, 'whatsapp' => $mTech->whatsapp] : null,
+              'wa_url'         => $mWaLink,
+              'photos'         => $mPhotos,
+              'logs'           => $mLogs,
+              'show_url'       => route('manajemen.perbaikan.show', [$t, 'from' => 'dashboard']),
+          ];
+        @endphp
+        <div class="dash-m-card border-red">
+          <div class="dash-m-head">
+            <div class="dash-m-code-group">
+              <span class="badge-code">{{ $t->code }}</span>
+              <span class="tiny muted">{{ $t->created_at->diffForHumans() }}</span>
+            </div>
+            <div class="dash-m-chips">
+              @include('partials.chip', ['v' => $t->urgency])
+              @include('partials.chip', ['v' => $t->display_status])
+            </div>
+          </div>
+
+          <div class="dash-m-machine">
+            <div class="dash-m-machine-title">{{ $t->machine?->name ?? 'Mesin' }}</div>
+            <div class="dash-m-machine-sub">
+              <span class="badge-code" style="font-size:10px">{{ $t->machine?->code ?? '-' }}</span> · {{ $t->machine?->location ?? '-' }}
+            </div>
+          </div>
+
+          <div class="dash-m-desc-box">
+            <span class="tiny muted" style="display:block;margin-bottom:3px;font-weight:700">Kendala:</span>
+            {{ $t->complaint }}
+          </div>
+
+          <div class="dash-m-meta-row">
+            <div class="dash-m-tech">
+              <span class="muted">Teknisi:</span>
+              @if ($mTech)
+                <b>{{ $mTech->name }}</b>
+                @if ($mWaLink)
+                  <a href="{{ $mWaLink }}" target="_blank" rel="noopener noreferrer" class="badge-wa" style="font-size:10px;padding:2px 6px">
+                    @include('partials.icon', ['n' => 'whatsapp']) WA
+                  </a>
+                @endif
+              @else
+                <span class="chip c-ditugaskan" style="font-size:10.5px;padding:2px 7px">Belum Ada Teknisi</span>
+              @endif
+            </div>
+          </div>
+
+          <div class="dash-m-actions">
+            <span class="tiny muted" style="font-weight:600">Aksi:</span>
+            <div class="dash-m-icon-group">
+              <button type="button" class="btn-icon detail" data-ticket="{{ json_encode($mPayload) }}" onclick="openTicketDetail(JSON.parse(this.dataset.ticket))" title="Lihat Detail & Foto">
+                @include('partials.icon', ['n' => 'eye'])
+              </button>
+              <a href="{{ route('manajemen.perbaikan.edit', $t) }}" class="btn-icon edit" title="Edit Tiket">
+                @include('partials.icon', ['n' => 'edit'])
+              </a>
+              <form method="POST" action="{{ route('manajemen.perbaikan.destroy', $t) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket {{ $t->code }}?');" style="display:inline;margin:0">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-icon danger" title="Hapus Tiket">
+                  @include('partials.icon', ['n' => 'trash'])
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="dash-m-empty">
+          <div style="font-size:24px;margin-bottom:4px">🔧</div>
+          <b style="font-size:14px;color:var(--ink)">Belum ada tiket perbaikan</b>
+          <div class="tiny muted" style="margin-top:2px">Tidak ada laporan kerusakan aktif yang tercatat saat ini.</div>
+        </div>
+      @endforelse
+    </div>
+
+    <div class="dash-card-footer" style="padding:12px 20px;background:#fcfcfb;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <span class="tiny muted">Tiket kerusakan yang baru dilaporkan atau sedang ditangani teknisi.</span>
       <a href="{{ route('manajemen.perbaikan.index') }}" class="link small" style="font-weight:700">Lihat Semua Tiket di Menu Perbaikan →</a>
     </div>
@@ -295,7 +405,7 @@
 
   {{-- TAB 2: ANTRIAN JADWAL MAINTENANCE --}}
   <div id="pane-tab-upcoming" class="dash-tab-pane" style="display:none;border-top:3.5px solid #d97706">
-    <div class="row between" style="padding:10px 20px;background:#fffbeb;border-bottom:1px solid #fde68a;align-items:center">
+    <div class="row between dash-room-banner" style="padding:10px 20px;background:#fffbeb;border-bottom:1px solid #fde68a;align-items:center">
       <span style="font-size:12.5px;font-weight:700;color:#92400e;display:flex;align-items:center;gap:7px">
         <span class="chip-dot" style="background:#d97706"></span> Ruang Operasional: Antrian Jadwal Maintenance Mendatang
       </span>
@@ -440,7 +550,122 @@
       </table>
     </div>
 
-    <div style="padding:12px 20px;background:#fcfcfb;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    {{-- Mobile View List for Tab 2 --}}
+    <div class="dashboard-mobile-list">
+      @forelse ($upcoming as $s)
+        @php
+          $mTech = $s->technician;
+          $mKindReminder = $s->display_status === 'terlambat' ? 'Terlambat' : ($s->due_date->isToday() ? 'Hari-H' : 'Pengingat');
+          $mSchedWaLink = ($mTech && $mTech->whatsapp) ? \App\Services\WhatsAppService::makeScheduleShareLink($s, $mKindReminder) : null;
+
+          $mLatestTicket = $s->ticket ?? $s->machine?->tickets?->first();
+          $mPhotos = [];
+          if ($mLatestTicket) {
+              foreach ($mLatestTicket->media as $m) {
+                  $mPhotos[] = [
+                      'url'   => $m->url,
+                      'phase' => $m->phase,
+                      'kind'  => $m->kind,
+                      'label' => $m->phase === 'after' ? 'Foto Sesudah Perbaikan' : 'Foto Sebelum / Awal'
+                  ];
+              }
+          }
+          $mLogs = [];
+          if ($mLatestTicket) {
+              foreach ($mLatestTicket->logs as $l) {
+                  $mLogs[] = ['label' => $l->label, 'note' => $l->note, 'time' => $l->created_at->translatedFormat('d M Y, H:i')];
+              }
+          }
+          $mPayload = [
+              'type'           => $s->type,
+              'task'           => $s->task,
+              'status'         => $s->status,
+              'display_status' => $s->display_status,
+              'formatted_date' => $s->due_date->translatedFormat('d M Y') . ($s->due_time ? ' Jam '.$s->due_time.' WIB' : ''),
+              'machine'        => ['name' => $s->machine?->name ?? 'Mesin', 'code' => $s->machine?->code ?? '-', 'location' => $s->machine?->location ?? '-'],
+              'technician'     => $mTech ? ['name' => $mTech->name, 'whatsapp' => $mTech->whatsapp] : null,
+              'wa_url'         => $mSchedWaLink,
+              'ticket'         => $mLatestTicket ? ['action' => $mLatestTicket->action, 'spareparts' => $mLatestTicket->spareparts] : null,
+              'photos'         => $mPhotos,
+              'logs'           => $mLogs,
+              'show_url'       => $s->machine ? route('manajemen.mesin.show', [$s->machine, 'from' => 'dashboard']) : '#',
+          ];
+        @endphp
+        <div class="dash-m-card border-amber">
+          <div class="dash-m-head">
+            <div class="dash-m-code-group">
+              <span class="badge-code" style="background:#fef3c7;color:#92400e;border-color:#fde68a;text-transform:capitalize">{{ $s->type }}</span>
+              <span class="tiny muted">{{ $s->interval_label ? 'Siklus ' . $s->interval_label : 'Perawatan Rutin' }}</span>
+            </div>
+            <div class="dash-m-chips">
+              @include('partials.chip', ['v' => $s->display_status])
+            </div>
+          </div>
+
+          <div class="dash-m-machine">
+            <div class="dash-m-machine-title">{{ $s->machine?->name ?? 'Mesin' }}</div>
+            <div class="dash-m-machine-sub">
+              <span class="badge-code" style="font-size:10px">{{ $s->machine?->code ?? '-' }}</span> · {{ $s->machine?->location ?? '-' }}
+            </div>
+          </div>
+
+          <div class="dash-m-desc-box" style="background:#fffbeb;border-color:#fde68a">
+            <span class="tiny muted" style="display:block;margin-bottom:3px;font-weight:700;color:#92400e">Rencana Tugas:</span>
+            <b style="color:var(--ink)">{{ $s->task }}</b>
+          </div>
+
+          <div class="dash-m-meta-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;flex-wrap:wrap">
+              <span class="muted">Jatuh Tempo:</span>
+              <b style="color:var(--ink)">{{ $s->due_date->translatedFormat('d M Y') }}</b>
+              @if ($s->due_time)
+                <span class="badge-time" style="font-size:10px;padding:1px 6px">Jam {{ $s->due_time }} WIB</span>
+              @endif
+            </div>
+            <div class="dash-m-tech">
+              <span class="muted">Teknisi:</span>
+              @if ($mTech)
+                <b>{{ $mTech->name }}</b>
+                @if ($mSchedWaLink)
+                  <a href="{{ $mSchedWaLink }}" target="_blank" rel="noopener noreferrer" class="badge-wa" style="font-size:10px;padding:2px 6px">
+                    @include('partials.icon', ['n' => 'whatsapp']) WA
+                  </a>
+                @endif
+              @else
+                <span class="chip c-ditugaskan" style="font-size:10.5px;padding:2px 7px">Belum Ditugaskan</span>
+              @endif
+            </div>
+          </div>
+
+          <div class="dash-m-actions">
+            <span class="tiny muted" style="font-weight:600">Aksi:</span>
+            <div class="dash-m-icon-group">
+              <button type="button" class="btn-icon detail" data-schedule="{{ json_encode($mPayload) }}" onclick="openScheduleDetail(JSON.parse(this.dataset.schedule))" title="Lihat Detail & Foto">
+                @include('partials.icon', ['n' => 'eye'])
+              </button>
+              <a href="{{ route('manajemen.jadwal.edit', $s) }}" class="btn-icon edit" title="Edit Jadwal">
+                @include('partials.icon', ['n' => 'edit'])
+              </a>
+              <form method="POST" action="{{ route('manajemen.jadwal.destroy', $s) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?');" style="display:inline;margin:0">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-icon danger" title="Hapus Jadwal">
+                  @include('partials.icon', ['n' => 'trash'])
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="dash-m-empty">
+          <div style="font-size:24px;margin-bottom:4px">📅</div>
+          <b style="font-size:14px;color:var(--ink)">Tidak ada maintenance aktif</b>
+          <div class="tiny muted" style="margin-top:2px">Jadwal perawatan mesin akan muncul otomatis di sini.</div>
+        </div>
+      @endforelse
+    </div>
+
+    <div class="dash-card-footer" style="padding:12px 20px;background:#fcfcfb;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <span class="tiny muted">Jadwal perawatan berkala untuk menjaga keandalan mesin operasional.</span>
       <a href="{{ route('manajemen.jadwal.index') }}" class="link small" style="font-weight:700">Buka Kalender & Semua Jadwal Maintenance →</a>
     </div>
@@ -448,7 +673,7 @@
 
   {{-- TAB 3: RIWAYAT MAINTENANCE SELESAI --}}
   <div id="pane-tab-completed" class="dash-tab-pane" style="display:none;border-top:3.5px solid #059669">
-    <div class="row between" style="padding:10px 20px;background:#ecfdf5;border-bottom:1px solid #a7f3d0;align-items:center">
+    <div class="row between dash-room-banner" style="padding:10px 20px;background:#ecfdf5;border-bottom:1px solid #a7f3d0;align-items:center">
       <span style="font-size:12.5px;font-weight:700;color:#065f46;display:flex;align-items:center;gap:7px">
         <span class="chip-dot" style="background:#059669"></span> Ruang Operasional: Riwayat Pekerjaan Selesai
       </span>
@@ -552,7 +777,108 @@
       </table>
     </div>
 
-    <div style="padding:12px 20px;background:#fcfcfb;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    {{-- Mobile View List for Tab 3 --}}
+    <div class="dashboard-mobile-list">
+      @forelse ($completedSchedules as $schedule)
+        @php
+          $cTech = $schedule->technician;
+          $cTicket = $schedule->ticket ?? $schedule->machine?->tickets?->first();
+          $cPhotos = [];
+          if ($cTicket) {
+              foreach ($cTicket->media as $m) {
+                  $cPhotos[] = [
+                      'url'   => $m->url,
+                      'phase' => $m->phase,
+                      'kind'  => $m->kind,
+                      'label' => $m->phase === 'after' ? 'Foto Sesudah Perbaikan' : 'Foto Sebelum / Awal'
+                  ];
+              }
+          }
+          $cLogs = [];
+          if ($cTicket) {
+              foreach ($cTicket->logs as $l) {
+                  $cLogs[] = ['label' => $l->label, 'note' => $l->note, 'time' => $l->created_at->translatedFormat('d M Y, H:i')];
+              }
+          }
+          $cPayload = [
+              'type'           => $schedule->type,
+              'task'           => $schedule->task,
+              'status'         => $schedule->status,
+              'display_status' => $schedule->display_status,
+              'formatted_date' => ($schedule->completed_at ? $schedule->completed_at->translatedFormat('d M Y') : $schedule->due_date->translatedFormat('d M Y')) . ($schedule->due_time ? ' Jam '.$schedule->due_time.' WIB' : ''),
+              'machine'        => ['name' => $schedule->machine?->name ?? 'Mesin', 'code' => $schedule->machine?->code ?? '-', 'location' => $schedule->machine?->location ?? '-'],
+              'technician'     => $cTech ? ['name' => $cTech->name, 'whatsapp' => $cTech->whatsapp] : null,
+              'wa_url'         => null,
+              'ticket'         => $cTicket ? ['action' => $cTicket->action, 'spareparts' => $cTicket->spareparts] : null,
+              'photos'         => $cPhotos,
+              'logs'           => $cLogs,
+              'show_url'       => $schedule->machine ? route('manajemen.mesin.show', [$schedule->machine, 'from' => 'dashboard']) : '#',
+          ];
+        @endphp
+        <div class="dash-m-card border-green">
+          <div class="dash-m-head">
+            <div class="dash-m-code-group">
+              <span class="badge-code" style="background:#ecfdf5;color:#065f46;border-color:#a7f3d0;text-transform:capitalize">{{ $schedule->type }}</span>
+              <span class="tiny muted">{{ $schedule->interval_label ? 'Siklus ' . $schedule->interval_label : 'Perawatan Berkala' }}</span>
+            </div>
+            <div class="dash-m-chips">
+              @include('partials.chip', ['v' => 'selesai'])
+            </div>
+          </div>
+
+          <div class="dash-m-machine">
+            <div class="dash-m-machine-title">{{ $schedule->machine?->name ?? 'Mesin' }}</div>
+            <div class="dash-m-machine-sub">
+              <span class="badge-code" style="font-size:10px">{{ $schedule->machine?->code ?? '-' }}</span> · {{ $schedule->machine?->location ?? '-' }}
+            </div>
+          </div>
+
+          <div class="dash-m-desc-box" style="background:#ecfdf5;border-color:#a7f3d0">
+            <span class="tiny muted" style="display:block;margin-bottom:3px;font-weight:700;color:#065f46">Tugas Diselesaikan:</span>
+            <b style="color:var(--ink)">{{ $schedule->task }}</b>
+          </div>
+
+          <div class="dash-m-meta-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;flex-wrap:wrap">
+              <span class="muted">Tuntas:</span>
+              <b style="color:#059669">{{ $schedule->completed_at?->translatedFormat('d M Y') ?? '-' }}</b>
+              <span class="tiny muted">(Jadwal: {{ $schedule->due_date->translatedFormat('d M Y') }})</span>
+            </div>
+            <div class="dash-m-tech">
+              <span class="muted">Teknisi:</span>
+              <b>{{ $cTech?->name ?? 'Belum Ditugaskan' }}</b>
+            </div>
+          </div>
+
+          <div class="dash-m-actions">
+            <span class="tiny muted" style="font-weight:600">Aksi:</span>
+            <div class="dash-m-icon-group">
+              <button type="button" class="btn-icon detail" data-schedule="{{ json_encode($cPayload) }}" onclick="openScheduleDetail(JSON.parse(this.dataset.schedule))" title="Lihat Detail & Foto">
+                @include('partials.icon', ['n' => 'eye'])
+              </button>
+              <a href="{{ route('manajemen.jadwal.edit', $schedule) }}" class="btn-icon edit" title="Edit Riwayat Jadwal">
+                @include('partials.icon', ['n' => 'edit'])
+              </a>
+              <form method="POST" action="{{ route('manajemen.jadwal.destroy', $schedule) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus riwayat jadwal ini?');" style="display:inline;margin:0">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-icon danger" title="Hapus Riwayat Jadwal">
+                  @include('partials.icon', ['n' => 'trash'])
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="dash-m-empty">
+          <div style="font-size:24px;margin-bottom:4px">✅</div>
+          <b style="font-size:14px;color:var(--ink)">Belum ada maintenance yang selesai</b>
+          <div class="tiny muted" style="margin-top:2px">Riwayat akan tampil otomatis setelah pekerjaan ditandai selesai.</div>
+        </div>
+      @endforelse
+    </div>
+
+    <div class="dash-card-footer" style="padding:12px 20px;background:#fcfcfb;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <span class="tiny muted">Pekerjaan perawatan berkala yang telah tuntas diselesaikan teknisi.</span>
       <a href="{{ route('manajemen.jadwal.index') }}" class="link small" style="font-weight:700">Lihat Riwayat Lengkap di Menu Jadwal →</a>
     </div>
