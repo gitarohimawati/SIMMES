@@ -16,8 +16,8 @@ class MaintenanceSchedule extends Model
     public function getDisplayStatusAttribute(): string
     {
         if ($this->status === 'selesai') return 'selesai';
-        if ($this->due_date->isPast() && !$this->due_date->isToday()) return 'terlambat';
-        return $this->status;
+        if ($this->due_date && $this->due_date->isPast() && !$this->due_date->isToday()) return 'terlambat';
+        return $this->status ?? 'terjadwal';
     }
 
     public function getFormattedScheduleAttribute(): string

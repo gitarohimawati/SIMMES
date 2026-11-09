@@ -233,8 +233,8 @@ tbody tr{transition:.15s} tbody tr:hover{background:var(--rose50)}
 .filters .input{flex:1;min-width:220px;width:auto} .filters .select{width:auto;min-width:160px}
 label.f{display:block;font-weight:700;font-size:13px;color:var(--ink2);margin:16px 0 6px}
 .err{color:var(--r700);font-size:13px;margin-top:6px;font-weight:600}
-.flash{background:var(--rose50);border:1px solid var(--rose200);border-left:5px solid var(--r500);color:var(--r800);padding:13px 18px;border-radius:12px;margin-bottom:20px;font-weight:600}
-.flash.bad{border-left-color:#7a0b1c;background:#fff0f0}
+.flash{background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1px solid var(--rose200);border-left:5px solid var(--brand);color:var(--r800);padding:13px 18px;border-radius:14px;margin-bottom:18px;font-weight:600;box-shadow:0 4px 14px -4px rgba(177,0,44,0.15)}
+.flash.bad{border-left-color:#7a0b1c;background:linear-gradient(135deg,#fef2f2 0%,#fee2e2 100%);color:#7f1d1d;border-color:#fecaca}
 .progress{height:9px;border-radius:99px;background:var(--rose100);overflow:hidden;min-width:110px}
 .progress i{display:block;height:100%;border-radius:99px;background:var(--grad-brand)}
 .muted{color:var(--ink2)} .small{font-size:12.5px} .tiny{color:var(--ink3);font-size:12px}

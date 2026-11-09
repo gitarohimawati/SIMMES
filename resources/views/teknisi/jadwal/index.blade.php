@@ -23,9 +23,9 @@
       'status'         => $s->status,
       'display_status' => $s->display_status,
       'progress'       => (int) $s->progress,
-      'machine_name'   => $s->machine->name,
-      'machine_code'   => $s->machine->code,
-      'location'       => $s->machine->location,
+      'machine_name'   => $s->machine?->name ?? 'Mesin',
+      'machine_code'   => $s->machine?->code ?? '-',
+      'location'       => $s->machine?->location ?? '-',
       'due_date'       => $s->due_date ? $s->due_date->translatedFormat('d M Y') : '-',
       'due_time'       => $s->due_time ?: '',
       'interval'       => $s->interval_label ?: ($s->interval_months ? $s->interval_months.' bulan' : 'Rutin'),
@@ -40,12 +40,17 @@
     ];
   @endphp
 
+  <script>
+    window.schedulesData = window.schedulesData || {};
+    window.schedulesData[{{ $s->id }}] = @json($payload);
+  </script>
+
   <div class="tcard" style="margin-bottom:12px;border-left:4px solid {{ $s->status === 'selesai' ? '#16a34a' : ($s->display_status === 'terlambat' ? '#ef4444' : 'var(--brand)') }}">
     <div class="row between" style="align-items:flex-start;gap:8px">
       <div>
-        <span class="badge-code" style="font-size:11px">{{ $s->machine->code }}</span>
+        <span class="badge-code" style="font-size:11px">{{ $s->machine?->code ?? '-' }}</span>
         <b style="font-size:15px;display:block;margin-top:4px;color:var(--ink)">{{ $s->task }}</b>
-        <div class="tiny muted" style="margin-top:2px">{{ $s->machine->name }} · {{ $s->machine->location }}</div>
+        <div class="tiny muted" style="margin-top:2px">{{ $s->machine?->name ?? 'Mesin' }} · {{ $s->machine?->location ?? '-' }}</div>
       </div>
       @include('partials.chip', ['v' => $s->display_status])
     </div>
@@ -79,11 +84,11 @@
 
     <div style="display:flex;justify-content:flex-end;gap:8px">
       @if ($s->status !== 'selesai')
-        <button type="button" class="btn primary block" onclick='openMaintenanceModal(@json($payload))' style="justify-content:center;font-size:12.5px;padding:8px 14px">
+        <button type="button" class="btn primary block" onclick="openScheduleById({{ $s->id }})" style="justify-content:center;font-size:12.5px;padding:8px 14px">
           🛠️ Kerjakan & Laporkan Hasil
         </button>
       @else
-        <button type="button" class="btn block" onclick='openMaintenanceModal(@json($payload))' style="justify-content:center;font-size:12.5px;padding:8px 14px;background:#fff;border-color:var(--line)">
+        <button type="button" class="btn block" onclick="openScheduleById({{ $s->id }})" style="justify-content:center;font-size:12.5px;padding:8px 14px;background:#fff;border-color:var(--line)">
           👁️ Lihat Detail & Hasil
         </button>
       @endif
@@ -133,12 +138,12 @@
     <div style="padding:18px 20px;display:grid;gap:14px;max-height:calc(85vh - 70px);overflow-y:auto">
       
       {{-- Banner Selesai (Jika Sudah Selesai) --}}
-      <div id="modalDoneBanner" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px 16px">
+      <div id="modalDoneBanner" style="display:none;background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1.5px solid var(--rose200);border-left:5px solid var(--brand);border-radius:14px;padding:14px 16px;box-shadow:0 4px 14px -4px rgba(177,0,44,0.15)">
         <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:16px;color:#16a34a">✓</span>
-          <b style="color:#14532d;font-size:14.5px">Pemeliharaan Selesai Dikerjakan!</b>
+          <span style="font-size:16px;color:var(--brand)">✓</span>
+          <b style="color:var(--r800);font-size:14.5px">Pemeliharaan Selesai Dikerjakan!</b>
         </div>
-        <p id="modalDoneDateText" class="tiny" style="color:#166534;margin:4px 0 10px">Diselesaikan dan status mesin telah aktif kembali.</p>
+        <p id="modalDoneDateText" class="tiny" style="color:var(--ink2);margin:4px 0 10px">Diselesaikan dan status mesin telah aktif kembali.</p>
         <a id="modalWaBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn primary block" style="background:#16a34a;border-color:#16a34a;justify-content:center;gap:8px;font-size:12.5px;padding:9px 12px">
           @include('partials.icon', ['n' => 'whatsapp']) Kirim Laporan Selesai ke WA Manajemen
         </a>
@@ -188,12 +193,12 @@
               <img id="beforeImg" src="" alt="Foto Sebelum" style="width:100%;height:105px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block">
             </div>
 
-            <form id="beforeUploadForm" method="POST" action="" enctype="multipart/form-data">
+            <form id="beforeUploadForm" method="POST" action="" enctype="multipart/form-data" style="margin:0">
               @csrf
               <input type="hidden" name="phase" value="before">
-              <label id="beforeUploadBtn" class="btn primary block" style="font-size:11px;padding:7px;cursor:pointer;justify-content:center">
-                📷 Unggah Foto
-                <input type="file" name="photo" accept="image/*" hidden onchange="this.form.submit()">
+              <label id="beforeUploadBtn" class="btn primary block" style="font-size:11px;padding:7px;cursor:pointer;justify-content:center;margin:0">
+                <span id="beforeUploadText">📷 Unggah Foto</span>
+                <input type="file" id="beforeFileInput" name="photo" accept="image/*" style="display:none" onchange="submitMaintenancePhoto(this, 'beforeUploadText')">
               </label>
             </form>
           </div>
@@ -206,12 +211,12 @@
               <img id="afterImg" src="" alt="Foto Sesudah" style="width:100%;height:105px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block">
             </div>
 
-            <form id="afterUploadForm" method="POST" action="" enctype="multipart/form-data">
+            <form id="afterUploadForm" method="POST" action="" enctype="multipart/form-data" style="margin:0">
               @csrf
               <input type="hidden" name="phase" value="after">
-              <label id="afterUploadBtn" class="btn primary block" style="font-size:11px;padding:7px;cursor:pointer;justify-content:center">
-                📸 Unggah Foto
-                <input type="file" name="photo" accept="image/*" hidden onchange="this.form.submit()">
+              <label id="afterUploadBtn" class="btn primary block" style="font-size:11px;padding:7px;cursor:pointer;justify-content:center;margin:0">
+                <span id="afterUploadText">📸 Unggah Foto</span>
+                <input type="file" id="afterFileInput" name="photo" accept="image/*" style="display:none" onchange="submitMaintenancePhoto(this, 'afterUploadText')">
               </label>
             </form>
           </div>
@@ -231,6 +236,20 @@
           <label class="f" style="margin:0 0 6px">Catatan Hasil Pemeriksaan & Tindakan</label>
           <textarea class="input" id="modalInputNotes" name="notes" rows="3" placeholder="Contoh: Rantai telah dilumasi, bearing dibersihkan, kebocoran nihil, mesin beroperasi normal saat uji beban."></textarea>
           <span class="tiny muted" style="display:block;margin-top:3px">Jelaskan kondisi mesin setelah Anda periksa/rawat.</span>
+        </div>
+
+        <div style="background:#fff5f6;border:1px dashed var(--rose200);border-radius:12px;padding:10px 12px">
+          <span class="tiny" style="font-weight:700;color:var(--r800);display:block;margin-bottom:6px">Unggah Foto Bersamaan Saat Selesai (Opsional)</span>
+          <div class="grid g2" style="gap:8px">
+            <div>
+              <label class="f" style="margin:0 0 4px;font-size:11px">Foto Sebelum</label>
+              <input class="input" type="file" name="before_photo" accept="image/*" style="padding:6px;font-size:11px">
+            </div>
+            <div>
+              <label class="f" style="margin:0 0 4px;font-size:11px">Foto Sesudah</label>
+              <input class="input" type="file" name="after_photo" accept="image/*" style="padding:6px;font-size:11px">
+            </div>
+          </div>
         </div>
 
         <div style="padding-top:6px;display:flex;justify-content:flex-end;gap:8px">
@@ -257,31 +276,57 @@
 </div>
 
 <script>
+window.schedulesData = window.schedulesData || {};
 let currentSchedule = null;
 
+function openScheduleById(id) {
+  if (window.schedulesData && window.schedulesData[id]) {
+    openMaintenanceModal(window.schedulesData[id]);
+  } else {
+    console.warn('Jadwal data tidak ditemukan untuk ID:', id);
+  }
+}
+
+function submitMaintenancePhoto(input, textId) {
+  if (input.files && input.files.length > 0) {
+    const textEl = document.getElementById(textId);
+    if (textEl) textEl.textContent = '⏳ Mengunggah...';
+    input.form.submit();
+  }
+}
+
 function openMaintenanceModal(item) {
+  if (!item) return;
   currentSchedule = item;
   const modal = document.getElementById('maintenanceModal');
-  if (!modal || !item) return;
+  if (!modal) return;
 
   // Header
-  document.getElementById('modalTaskTitle').textContent = item.task;
-  document.getElementById('modalMachineSubtitle').textContent = `${item.machine_name} (${item.machine_code}) · ${item.location}`;
+  const titleEl = document.getElementById('modalTaskTitle');
+  const subEl   = document.getElementById('modalMachineSubtitle');
+  if (titleEl) titleEl.textContent = item.task || 'Pengerjaan Maintenance';
+  if (subEl)   subEl.textContent = `${item.machine_name || 'Mesin'} (${item.machine_code || '-'}) · ${item.location || '-'}`;
 
   // Info
-  document.getElementById('modalDueDate').textContent = `${item.due_date} ${item.due_time ? '· Jam ' + item.due_time + ' WIB' : ''}`;
-  document.getElementById('modalInterval').textContent = item.interval;
+  const dueEl  = document.getElementById('modalDueDate');
+  const intEl  = document.getElementById('modalInterval');
+  if (dueEl) dueEl.textContent = `${item.due_date || '-'} ${item.due_time ? '· Jam ' + item.due_time + ' WIB' : ''}`;
+  if (intEl) intEl.textContent = item.interval || 'Rutin';
 
   // Status Chip
   const badgeWrap = document.getElementById('modalStatusBadge');
-  const chipClass = item.status === 'selesai' ? 'c-selesai' : (item.display_status === 'terlambat' ? 'c-terlambat' : 'c-terjadwal');
-  const chipLabel = item.status === 'selesai' ? 'Selesai' : (item.display_status === 'terlambat' ? 'Terlambat' : (item.status === 'dikerjakan' ? 'Dikerjakan' : 'Terjadwal'));
-  badgeWrap.innerHTML = `<span class="chip ${chipClass}"><span class="chip-dot"></span> ${chipLabel}</span>`;
+  if (badgeWrap) {
+    const chipClass = item.status === 'selesai' ? 'c-selesai' : (item.display_status === 'terlambat' ? 'c-terlambat' : 'c-terjadwal');
+    const chipLabel = item.status === 'selesai' ? 'Selesai' : (item.display_status === 'terlambat' ? 'Terlambat' : (item.status === 'dikerjakan' ? 'Dikerjakan' : 'Terjadwal'));
+    badgeWrap.innerHTML = `<span class="chip ${chipClass}"><span class="chip-dot"></span> ${chipLabel}</span>`;
+  }
 
   // Progress Bar
   const prog = parseInt(item.progress, 10) || 0;
-  document.getElementById('modalProgressText').textContent = `${prog}%`;
-  document.getElementById('modalProgressBar').style.width = `${prog}%`;
+  const progText = document.getElementById('modalProgressText');
+  const progBar  = document.getElementById('modalProgressBar');
+  if (progText) progText.textContent = `${prog}%`;
+  if (progBar)  progBar.style.width = `${prog}%`;
 
   // Stepper
   const stepBefore = document.getElementById('stepBefore');
@@ -289,77 +334,86 @@ function openMaintenanceModal(item) {
   const stepAfter  = document.getElementById('stepAfter');
   const stepDone   = document.getElementById('stepDone');
 
-  stepBefore.className = (item.before_url || prog >= 25) ? 'done' : '';
-  stepWork.className   = (prog >= 50) ? 'done' : '';
-  stepAfter.className  = (item.after_url || prog >= 75) ? 'done' : '';
-  stepDone.className   = (item.status === 'selesai') ? 'done' : '';
+  if (stepBefore) stepBefore.className = (item.before_url || prog >= 25) ? 'done' : '';
+  if (stepWork)   stepWork.className   = (prog >= 50) ? 'done' : '';
+  if (stepAfter)  stepAfter.className  = (item.after_url || prog >= 75) ? 'done' : '';
+  if (stepDone)   stepDone.className   = (item.status === 'selesai') ? 'done' : '';
 
   // Foto Sebelum
   const beforeForm = document.getElementById('beforeUploadForm');
   const beforeWrap = document.getElementById('beforePreviewWrap');
   const beforeImg  = document.getElementById('beforeImg');
+  const beforeText = document.getElementById('beforeUploadText');
   const beforeBtn  = document.getElementById('beforeUploadBtn');
-  beforeForm.action = item.upload_url;
+  if (beforeForm) beforeForm.action = item.upload_url || '';
 
   if (item.before_url) {
-    beforeImg.src = item.before_url;
-    beforeWrap.style.display = 'block';
-    beforeBtn.textContent = 'Ganti Foto';
-    beforeBtn.className = 'btn block';
+    if (beforeImg) beforeImg.src = item.before_url;
+    if (beforeWrap) beforeWrap.style.display = 'block';
+    if (beforeText) beforeText.textContent = 'Ganti Foto';
+    if (beforeBtn) beforeBtn.className = 'btn block';
   } else {
-    beforeWrap.style.display = 'none';
-    beforeBtn.textContent = '📷 Unggah Foto';
-    beforeBtn.className = 'btn primary block';
+    if (beforeWrap) beforeWrap.style.display = 'none';
+    if (beforeText) beforeText.textContent = '📷 Unggah Foto';
+    if (beforeBtn) beforeBtn.className = 'btn primary block';
   }
 
   // Foto Sesudah
   const afterForm = document.getElementById('afterUploadForm');
   const afterWrap = document.getElementById('afterPreviewWrap');
   const afterImg  = document.getElementById('afterImg');
+  const afterText = document.getElementById('afterUploadText');
   const afterBtn  = document.getElementById('afterUploadBtn');
-  afterForm.action = item.upload_url;
+  if (afterForm) afterForm.action = item.upload_url || '';
 
   if (item.after_url) {
-    afterImg.src = item.after_url;
-    afterWrap.style.display = 'block';
-    afterBtn.textContent = 'Ganti Foto';
-    afterBtn.className = 'btn block';
+    if (afterImg) afterImg.src = item.after_url;
+    if (afterWrap) afterWrap.style.display = 'block';
+    if (afterText) afterText.textContent = 'Ganti Foto';
+    if (afterBtn) afterBtn.className = 'btn block';
   } else {
-    afterWrap.style.display = 'none';
-    afterBtn.textContent = '📸 Unggah Foto';
-    afterBtn.className = 'btn primary block';
+    if (afterWrap) afterWrap.style.display = 'none';
+    if (afterText) afterText.textContent = '📸 Unggah Foto';
+    if (afterBtn) afterBtn.className = 'btn primary block';
   }
 
   // Selesai vs Belum Selesai View
-  const doneBanner = document.getElementById('modalDoneDoneBanner') || document.getElementById('modalDoneBanner');
+  const doneBanner = document.getElementById('modalDoneBanner');
   const completeForm = document.getElementById('modalCompleteForm');
   const summaryBox = document.getElementById('modalCompletedSummary');
   const waBtn = document.getElementById('modalWaBtn');
 
   if (item.status === 'selesai') {
-    doneBanner.style.display = 'block';
-    document.getElementById('modalDoneDateText').textContent = `Diselesaikan pada ${item.completed_date || 'Hari ini'}. Status mesin telah aktif kembali.`;
+    if (doneBanner) doneBanner.style.display = 'block';
+    const dateEl = document.getElementById('modalDoneDateText');
+    if (dateEl) dateEl.textContent = `Diselesaikan pada ${item.completed_date || 'Hari ini'}. Status mesin telah aktif kembali.`;
     if (waBtn) waBtn.href = item.wa_link || '#';
 
-    completeForm.style.display = 'none';
-    summaryBox.style.display = 'grid';
-    document.getElementById('summaryParts').textContent = item.spareparts || 'Tidak ada pergantian suku cadang';
-    document.getElementById('summaryNotes').textContent = item.notes || 'Pekerjaan rutin selesai sesuai standar.';
+    if (completeForm) completeForm.style.display = 'none';
+    if (summaryBox) summaryBox.style.display = 'grid';
+    const partsEl = document.getElementById('summaryParts');
+    const notesEl = document.getElementById('summaryNotes');
+    if (partsEl) partsEl.textContent = item.spareparts || 'Tidak ada pergantian suku cadang';
+    if (notesEl) notesEl.textContent = item.notes || 'Pekerjaan rutin selesai sesuai standar.';
 
     // Matikan upload jika sudah selesai
-    beforeForm.style.display = 'none';
-    afterForm.style.display = 'none';
+    if (beforeForm) beforeForm.style.display = 'none';
+    if (afterForm) afterForm.style.display = 'none';
   } else {
-    doneBanner.style.display = 'none';
-    completeForm.style.display = 'grid';
-    completeForm.action = item.complete_url;
-    summaryBox.style.display = 'none';
+    if (doneBanner) doneBanner.style.display = 'none';
+    if (completeForm) {
+      completeForm.style.display = 'grid';
+      completeForm.action = item.complete_url || '';
+    }
+    if (summaryBox) summaryBox.style.display = 'none';
 
-    document.getElementById('modalInputParts').value = item.spareparts || '';
-    document.getElementById('modalInputNotes').value = item.notes || '';
+    const pIn = document.getElementById('modalInputParts');
+    const nIn = document.getElementById('modalInputNotes');
+    if (pIn) pIn.value = item.spareparts || '';
+    if (nIn) nIn.value = item.notes || '';
 
-    beforeForm.style.display = 'block';
-    afterForm.style.display = 'block';
+    if (beforeForm) beforeForm.style.display = 'block';
+    if (afterForm) afterForm.style.display = 'block';
   }
 
   modal.style.display = 'flex';
@@ -391,9 +445,9 @@ document.addEventListener('keydown', function(e) {
         'status'         => $openSchedule->status,
         'display_status' => $openSchedule->display_status,
         'progress'       => (int) $openSchedule->progress,
-        'machine_name'   => $openSchedule->machine->name,
-        'machine_code'   => $openSchedule->machine->code,
-        'location'       => $openSchedule->machine->location,
+        'machine_name'   => $openSchedule->machine?->name ?? 'Mesin',
+        'machine_code'   => $openSchedule->machine?->code ?? '-',
+        'location'       => $openSchedule->machine?->location ?? '-',
         'due_date'       => $openSchedule->due_date ? $openSchedule->due_date->translatedFormat('d M Y') : '-',
         'due_time'       => $openSchedule->due_time ?: '',
         'interval'       => $openSchedule->interval_label ?: ($openSchedule->interval_months ? $openSchedule->interval_months.' bulan' : 'Rutin'),

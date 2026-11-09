@@ -24,13 +24,13 @@
     </form>
   </div>
 @elseif ($isMine && !$done)
-  <div class="tcard hero" style="background:#f0fdf4;border:1.5px solid #86efac;margin-bottom:14px;padding:14px 16px">
-    <b style="color:#15803d;font-size:14px">✓ Tugas Resmi Anda Ambil</b>
-    <div class="tiny" style="color:#166534;margin-top:2px">Tiket ini sedang dalam penanganan Anda. Lanjutkan dengan unggah foto sebelum dan proses perbaikan.</div>
+  <div class="tcard hero" style="background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1.5px solid var(--rose200);border-left:5px solid var(--brand);margin-bottom:14px;padding:14px 16px;box-shadow:0 4px 14px -4px rgba(177,0,44,0.12)">
+    <b style="color:var(--r800);font-size:14px">✓ Tugas Resmi Anda Ambil</b>
+    <div class="tiny" style="color:var(--ink2);margin-top:2px">Tiket ini sedang dalam penanganan Anda. Lanjutkan dengan unggah foto sebelum dan proses perbaikan.</div>
   </div>
 @elseif ($ticket->technician_id && !$isMine)
-  <div class="tcard hero" style="background:#fff1f2;border:1.5px solid #fecdd3;margin-bottom:14px;padding:14px 16px">
-    <b style="color:#be123c;font-size:14px">🔒 Tugas Sudah Diambil oleh {{ $ticket->technician?->name ?? 'Teknisi Lain' }}</b>
+  <div class="tcard hero" style="background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1.5px solid var(--rose200);border-left:5px solid #7a0b1c;margin-bottom:14px;padding:14px 16px">
+    <b style="color:#7a0b1c;font-size:14px">🔒 Tugas Sudah Diambil oleh {{ $ticket->technician?->name ?? 'Teknisi Lain' }}</b>
     <div class="tiny" style="color:#881337;margin-top:2px">Tiket perbaikan ini sudah diambil lebih dulu oleh rekan teknisi lain. Anda tidak perlu mengerjakan tiket ini.</div>
   </div>
 @endif

@@ -1,5 +1,5 @@
 @extends('layouts.technician')
-@section('title', 'Perawatan ' . $jadwal->machine->code)
+@section('title', 'Perawatan ' . ($jadwal->machine?->code ?? 'Mesin'))
 @section('heading', 'Perawatan Mesin')
 @section('back', route('teknisi.jadwal'))
 @section('nonav', '1')
@@ -13,14 +13,14 @@
 
 {{-- Banner Pemberitahuan Status Selesai / Kirim WA --}}
 @if ($isDone)
-  <div class="tcard hero" style="background:#f0fdf4;border:1.5px solid #86efac;margin-bottom:14px;padding:16px">
+  <div class="tcard hero" style="background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1.5px solid var(--rose200);border-left:5px solid var(--brand);margin-bottom:14px;padding:16px;box-shadow:0 4px 14px -4px rgba(177,0,44,0.15)">
     <div class="row between" style="gap:10px;align-items:flex-start">
       <div>
         <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:16px;color:#16a34a">✓</span>
-          <b style="color:#14532d;font-size:15px">Pemeliharaan Selesai Dikerjakan!</b>
+          <span style="font-size:16px;color:var(--brand)">✓</span>
+          <b style="color:var(--r800);font-size:15px">Pemeliharaan Selesai Dikerjakan!</b>
         </div>
-        <p class="small" style="color:#166534;margin:4px 0 0">
+        <p class="small" style="color:var(--ink2);margin:4px 0 0">
           Diselesaikan pada <b>{{ $jadwal->completed_at ? $jadwal->completed_at->translatedFormat('d F Y') : now()->translatedFormat('d F Y') }}</b>. Status mesin telah diperbarui menjadi aktif.
         </p>
       </div>
@@ -28,7 +28,7 @@
     </div>
 
     @if (!empty($waCompletedLink))
-      <div style="margin-top:14px;padding-top:12px;border-top:1px dashed #bbf7d0">
+      <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--rose200)">
         <span class="tiny muted" style="display:block;margin-bottom:6px">Kirimkan konfirmasi penyelesaian pekerjaan ini ke WhatsApp Manajemen:</span>
         <a href="{{ $waCompletedLink }}" target="_blank" rel="noopener noreferrer" class="btn primary block" style="background:#16a34a;border-color:#16a34a;justify-content:center;gap:8px;font-size:13.5px;padding:10px 14px">
           @include('partials.icon', ['n' => 'whatsapp']) Kirim Laporan Selesai ke WA Manajemen
@@ -37,7 +37,7 @@
     @endif
   </div>
 @elseif ($jadwal->display_status === 'terlambat')
-  <div class="tcard hero" style="background:#fff1f2;border:1.5px solid #fecdd3;margin-bottom:14px;padding:14px 16px">
+  <div class="tcard hero" style="background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1.5px solid var(--rose200);border-left:5px solid #ef4444;margin-bottom:14px;padding:14px 16px">
     <b style="color:#be123c;font-size:14px">⚠️ Melewati Tanggal Jatuh Tempo</b>
     <div class="tiny" style="color:#881337;margin-top:2px">Jadwal perawatan ini telah melewati tanggal jatuh tempo. Harap segera laksanakan pemeriksaan mesin.</div>
   </div>
@@ -53,11 +53,11 @@
   <div style="margin-top:12px;display:grid;gap:6px">
     <div class="row" style="gap:8px">
       <span class="tiny muted" style="width:90px;flex-shrink:0">Mesin</span>
-      <b class="small" style="color:var(--ink)">{{ $jadwal->machine->name }} ({{ $jadwal->machine->code }})</b>
+      <b class="small" style="color:var(--ink)">{{ $jadwal->machine?->name ?? 'Mesin' }} ({{ $jadwal->machine?->code ?? '-' }})</b>
     </div>
     <div class="row" style="gap:8px">
       <span class="tiny muted" style="width:90px;flex-shrink:0">Lokasi</span>
-      <span class="small" style="color:var(--ink2)">{{ $jadwal->machine->location }}</span>
+      <span class="small" style="color:var(--ink2)">{{ $jadwal->machine?->location ?? '-' }}</span>
     </div>
     <div class="row" style="gap:8px">
       <span class="tiny muted" style="width:90px;flex-shrink:0">Waktu Jadwal</span>
@@ -197,13 +197,19 @@
         <span class="tiny muted" style="display:block;margin-top:3px">Jelaskan kondisi mesin setelah Anda periksa/rawat.</span>
       </div>
 
-      @if (!$hasAfter)
-        <div>
-          <label class="f" style="margin:0 0 6px">Unggah Foto Sesudah (Bukti Akhir)</label>
-          <input class="input" type="file" name="after_photo" accept="image/*">
-          <span class="tiny muted" style="display:block;margin-top:3px">Bisa diunggah langsung sekarang atau melalui tombol di atas.</span>
+      <div style="background:#fff5f6;border:1px dashed var(--rose200);border-radius:12px;padding:12px;margin-top:4px">
+        <span class="tiny" style="font-weight:700;color:var(--r800);display:block;margin-bottom:8px">Unggah Foto Bersamaan Saat Selesai (Opsional)</span>
+        <div class="grid g2" style="gap:10px">
+          <div>
+            <label class="f" style="margin:0 0 4px;font-size:11.5px">Foto Sebelum</label>
+            <input class="input" type="file" name="before_photo" accept="image/*" style="padding:6px;font-size:11.5px">
+          </div>
+          <div>
+            <label class="f" style="margin:0 0 4px;font-size:11.5px">Foto Sesudah</label>
+            <input class="input" type="file" name="after_photo" accept="image/*" style="padding:6px;font-size:11.5px">
+          </div>
         </div>
-      @endif
+      </div>
     </div>
 
     <div style="margin-top:18px">

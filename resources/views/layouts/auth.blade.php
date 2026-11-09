@@ -218,13 +218,15 @@
 
   /* Notifikasi & Pesan Error */
   .alert {
-    background: var(--red-50);
-    border: 1px solid #fecaca;
-    color: var(--red-700);
-    border-radius: 10px;
+    background: linear-gradient(135deg, #fff5f6 0%, #ffe9ec 100%);
+    border: 1px solid #fecdd3;
+    border-left: 4px solid #b1002c;
+    color: #880022;
+    border-radius: 12px;
     padding: 12px 14px;
     font-size: 13px;
     line-height: 1.5;
+    font-weight: 600;
   }
   .alert p { margin: 0; }
   .notice {

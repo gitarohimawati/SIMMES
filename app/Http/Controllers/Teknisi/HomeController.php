@@ -36,8 +36,8 @@ class HomeController extends Controller
         $recent = Ticket::with('machine')->where('technician_id', $u->id)->where('status', 'selesai')
             ->latest('finished_at')->take(3)->get();
 
-        // pengingat sesuai aturan notifikasi: H-7, H-1, hari-H, terlambat
-        $reminders = $schedules->map(function ($s) {
+        // pengingat sesuai aturan notifikasi: H-7, H-1, hari-H, terlambat (hanya jadwal yang BELUM selesai dan memiliki tanggal)
+        $reminders = $schedules->filter(fn ($s) => $s->status !== 'selesai' && !empty($s->due_date))->map(function ($s) {
             $d = (int) now()->startOfDay()->diffInDays($s->due_date, false);
             $tag = match (true) {
                 $d < 0 => ['Terlambat '.abs($d).' hari', 'late'],

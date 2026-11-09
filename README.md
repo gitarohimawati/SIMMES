@@ -1,293 +1,437 @@
-# SIMMES (Sistem Informasi Monitoring & Maintenance Mesin)
+# SIMMES — Sistem Informasi Monitoring & Maintenance Mesin
 
-Aplikasi web berbasis **Laravel 11** yang dirancang untuk mengelola pemeliharaan mesin pabrik/industri, mencakup penanganan kerusakan (*Corrective Maintenance*), jadwal pemeliharaan rutin (*Preventive Maintenance*), manajemen aset mesin, penugasan teknisi dengan sistem **"Siapa Cepat Dia Dapat"**, serta integrasi notifikasi otomatis via **WhatsApp Gateway (Fonnte)**.
+![Laravel Version](https://img.shields.io/badge/Laravel-11.x-red.svg)
+![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)
+![Database](https://img.shields.io/badge/Database-MySQL-orange.svg)
+![WhatsApp Gateway](https://img.shields.io/badge/Gateway-Fonnte_API-green.svg)
+![Architecture](https://img.shields.io/badge/Design-Mobile--First_%26_Desktop_Portal-crimson.svg)
 
----
+**SIMMES** adalah aplikasi web modern berbasis industri manufaktur untuk memantau status aset mesin pabrik, menangani laporan perbaikan kerusakan (*Corrective Maintenance*), dan menjadwalkan pemeliharaan preventif berkala (*Preventive Maintenance*). 
 
-## Daftar Isi
-1. [Arsitektur & Hak Akses Pengguna (Role)](#1-arsitektur--hak-akses-pengguna-role)
-2. [Peta Struktur File & Keterhubungannya](#2-peta-struktur-file--keterhubungannya)
-   - [A. Modul Teknisi (Mobile-First / Lapangan)](#a-modul-teknisi-mobile-first--lapangan)
-   - [B. Modul Manajemen / Supervisor (Desktop & Tablet)](#b-modul-manajemen--supervisor-desktop--tablet)
-   - [C. Modul Pelaporan Tiket & WhatsApp Gateway](#c-modul-pelaporan-tiket--whatsapp-gateway)
-   - [D. Modul Autentikasi & Manajemen Akun](#d-modul-autentikasi--manajemen-akun)
-3. [Alur Kerja Aplikasi (Application Workflows)](#3-alur-kerja-aplikasi-application-workflows)
-   - [Workflow 1: Pelaporan Tiket & Siaran WA Serentak ("Siapa Cepat Dia Dapat")](#workflow-1-pelaporan-tiket--siaran-wa-serentak-siapa-cepat-dia-dapat)
-   - [Workflow 2: Pengerjaan & Lembar Kerja Teknisi (SOP Foto Sebelum & Sesudah)](#workflow-2-pengerjaan--lembar-kerja-teknisi-sop-foto-sebelum--sesudah)
-   - [Workflow 3: Pemeliharaan Rutin / Berkala (Preventive Maintenance)](#workflow-3-pemeliharaan-rutin--berkala-preventive-maintenance)
-   - [Workflow 4: Monitoring KPI & Rekap Laporan Manajemen](#workflow-4-monitoring-kpi--rekap-laporan-manajemen)
-4. [Diagram Alur Sistem (Mermaid)](#4-diagram-alur-sistem-mermaid)
-5. [Skema Basis Data (Database Tables)](#5-skema-basis-data-database-tables)
-6. [Panduan Instalasi & Menjalankan Aplikasi](#6-panduan-instalasi--menjalankan-aplikasi)
+Sistem ini dirancang khusus dengan dua pendekatan antarmuka: **Portal Manager Desktop** untuk manajemen/supervisor dan **Antarmuka Mobile-First** untuk teknisi di lapangan, terintegrasi langsung dengan **WhatsApp Gateway (Fonnte)** melalui sistem penugasan responsif **"Siapa Cepat Dia Dapat"** (*First-Come, First-Served*).
 
 ---
 
-## 1. Arsitektur & Hak Akses Pengguna (Role)
-
-Aplikasi memiliki 2 role utama dengan antarmuka yang disesuaikan secara khusus:
-
-| Role | Antarmuka Pengguna | Fokus Penggunaan |
-| :--- | :--- | :--- |
-| **Teknisi** (`teknisi`) | Tampilan responsif **Mobile-First** (Bottom Navigation Bar, kartu kerja ringkas, modal kamera instan). | Menerima siaran tugas, klaim tiket secara mandiri (*first-come first-served*), unggah foto kondisi awal/akhir, catat pemakaian sparepart, dan selesaikan pekerjaan. |
-| **Manajemen** (`manajemen`) | Tampilan **Desktop/Tablet Dashboard** (Sidebar kiri permanen, kartu KPI interaktif, segmented operational rooms, kalender maintenance, dan rekap print). | Memantau kesiapan mesin, membuat jadwal maintenance rutin, mengelola data mesin & pengguna, mengevaluasi tiket terlambat, dan mencetak laporan HRD/Direksi. |
-
----
-
-## 2. Peta Struktur File & Keterhubungannya
-
-### A. Modul Teknisi (Mobile-First / Lapangan)
-
-Semua rute teknisi berada di bawah grup prefix `/teknisi` dengan middleware `auth` dan `role:teknisi`.
-
-| Komponen | Lokasi File | Fungsi & Keterhubungan |
-| :--- | :--- | :--- |
-| **Routing** | `routes/simmes.php` (baris 74–108) | Mendefinisikan seluruh rute teknisi (`teknisi.home`, `teknisi.tugas.*`, `teknisi.jadwal.*`, `teknisi.laporan.*`, `teknisi.profil.*`). |
-| **Layout Utama** | `resources/views/layouts/technician.blade.php` | Kerangka halaman ponsel teknisi, header status, bottom navigation (Home, Tugas, Jadwal, Laporan, Profil), listener audio notifikasi, dan auto-dismiss alert flash. |
-| **Dashboard Teknisi** | Controller: `app/Http/Controllers/Teknisi/HomeController.php`<br>↳ `resources/views/teknisi/home.blade.php` | Menampilkan ringkasan tugas aktif, tiket tersedia untuk diklaim, status mesin terkini, serta polling JSON `/teknisi/live-alerts` untuk audio alert real-time. |
-| **Daftar Tugas Teknisi** | Controller: `app/Http/Controllers/Teknisi/TaskController.php`<br>↳ `resources/views/teknisi/tugas/index.blade.php` | Daftar tugas teknisi dengan filter: Tugas Tersedia (Klaim), Belum Mulai, Sedang Dikerjakan, dan Selesai. |
-| **Form Pengerjaan SOP Tugas** | Controller: `app/Http/Controllers/Teknisi/TaskController.php`<br>↳ `resources/views/teknisi/tugas/detail.blade.php`<br>*(alias: `form-pengerjaan.blade.php`)* | **Lembar kerja eksekusi perbaikan**: tombol klaim mandiri, upload foto *Sebelum Perbaikan*, input rincian tindakan perbaikan & suku cadang, upload foto *Sesudah Perbaikan*, dan tombol selesai 100%. |
-| **Jadwal Rutin Teknisi** | Controller: `app/Http/Controllers/Teknisi/ScheduleController.php`<br>↳ `resources/views/teknisi/jadwal/index.blade.php` | Menampilkan agenda jadwal pemeliharaan preventif rutin mesin yang ditugaskan ke teknisi. |
-| **Laporan Mandiri Teknisi** | Controller: `app/Http/Controllers/Teknisi/ReportController.php`<br>↳ `resources/views/teknisi/laporan/` (`index`, `create`, `edit`, `show`) | - `index.blade.php`: Riwayat laporan mandiri.<br>- `create.blade.php`: Form lapor kerusakan baru dari lapangan.<br>- `edit.blade.php`: Form edit laporan & kelola media.<br>- `show.blade.php`: Halaman detail laporan. |
-| **Profil & Konfigurasi WA** | Controller: `app/Http/Controllers/Teknisi/ProfileController.php`<br>↳ `resources/views/teknisi/profil/index.blade.php` | Mengubah profil nama pengguna, memperbarui nomor WhatsApp, tombol uji coba pesan (*Tes Kirim WA*), dan logout. |
+## 📌 Daftar Isi
+1. [Latar Belakang & Nilai Tambah Aplikasi](#1-latar-belakang--nilai-tambah-aplikasi)
+2. [Hak Akses Pengguna (Role & Permissions)](#2-hak-akses-pengguna-role--permissions)
+3. [Entity Relationship Diagram (ERD)](#3-entity-relationship-diagram-erd)
+4. [Struktur Arsitektur & Direktori Kode](#4-struktur-arsitektur--direktori-kode)
+5. [Diagram Alur Sistem (System Flowcharts)](#5-diagram-alur-sistem-system-flowcharts)
+   - [A. Alur Autentikasi & Role Gateway](#a-alur-autentikasi--role-gateway)
+   - [B. Alur Laporan Insiden & Siaran WA ("Siapa Cepat Dia Dapat")](#b-alur-laporan-insiden--siaran-wa-siapa-cepat-dia-dapat)
+   - [C. Alur Eksekusi SOP Perbaikan Teknisi (Foto Sebelum & Sesudah)](#c-alur-eksekusi-sop-perbaikan-teknisi-foto-sebelum--sesudah)
+   - [D. Alur Preventive Maintenance & Penjadwalan Otomatis](#d-alur-preventive-maintenance--penjadwalan-otomatis)
+6. [Skenario Demonstrasi untuk Presentasi](#6-skenario-demonstrasi-untuk-presentasi)
+7. [Panduan Instalasi & Menjalankan Aplikasi](#7-panduan-instalasi--menjalankan-aplikasi)
 
 ---
 
-### B. Modul Manajemen / Supervisor (Desktop & Tablet)
+## 1. Latar Belakang & Nilai Tambah Aplikasi
 
-Semua rute manajemen berada di bawah grup prefix `/manajemen` dengan middleware `auth` dan `role:manajemen`.
-
-| Komponen | Lokasi File | Fungsi & Keterhubungan |
-| :--- | :--- | :--- |
-| **Routing** | `routes/simmes.php` (baris 19–72) | Mendefinisikan seluruh rute manajemen (`manajemen.dashboard`, `manajemen.mesin.*`, `manajemen.perbaikan.*`, `manajemen.jadwal.*`, `manajemen.laporan.*`, `manajemen.pengguna.*`). |
-| **Layout Utama** | `resources/views/layouts/manager.blade.php` | Sidebar menu navigasi, identitas user login, header dinamis, dan modal quick-actions. |
-| **Dashboard Manajemen** | Controller: `app/Http/Controllers/Manajemen/DashboardController.php`<br>↳ `resources/views/manajemen/dashboard.blade.php` | - 4 KPI Card interaktif (Mesin Aktif, Sedang Diperbaiki, Menunggu Teknisi, Melewati Batas Waktu).<br>- Segmented Operational Rooms: Tab Tiket Perbaikan, Tab Jadwal Mendatang, dan Tab Riwayat Selesai.<br>- Tombol pengujian langsung koneksi Gateway Fonnte (*Tes Gateway WA*). |
-| **Data Mesin** | Controller: `app/Http/Controllers/Manajemen/MachineController.php`<br>↳ `resources/views/manajemen/mesin/` (`index`, `create`, `edit`, `form`, `show`) | - `index.blade.php`: Tabel daftar seluruh mesin & import CSV.<br>- `create.blade.php` / `edit.blade.php` / `form.blade.php`: Formulir input data mesin.<br>- `show.blade.php`: Detail mesin & riwayat perbaikan. |
-| **Monitoring Perbaikan** | Controller: `app/Http/Controllers/Manajemen/TicketController.php`<br>↳ `resources/views/manajemen/perbaikan/` (`index`, `create`, `edit`, `show`) | - `index.blade.php`: Tabel seluruh tiket perbaikan masuk.<br>- `create.blade.php`: Form buat laporan perbaikan baru manajemen.<br>- `edit.blade.php`: Form edit tiket (urgensi, teknisi, status).<br>- `show.blade.php`: Detail tiket, foto sebelum/sesudah, linimasa. |
-| **Jadwal Maintenance** | Controller: `app/Http/Controllers/Manajemen/ScheduleController.php`<br>↳ `resources/views/manajemen/jadwal/` (`index`, `kalender`, `create`, `edit`, `_tabs`) | - `index.blade.php`: Tabel antrean jadwal rutin.<br>- `kalender.blade.php`: Tampilan kalender bulanan interaktif.<br>- `create.blade.php`: Form buat jadwal pemeliharaan baru.<br>- `edit.blade.php`: Form edit jadwal pemeliharaan. |
-| **Data Teknisi** | Controller: `app/Http/Controllers/Manajemen/TechnicianController.php`<br>↳ `resources/views/manajemen/teknisi/` (`index`, `create`, `show`) | - `index.blade.php`: Daftar seluruh teknisi & status WA.<br>- `create.blade.php`: Form pendaftaran teknisi baru.<br>- `show.blade.php`: Detail beban kerja tiket teknisi. |
-| **Manajemen Pengguna** | Controller: `app/Http/Controllers/Manajemen/UserController.php`<br>↳ `resources/views/manajemen/pengguna/` (`index`, `create`, `edit`, `form`) | - `index.blade.php`: Tabel daftar pengguna & persetujuan akun.<br>- `create.blade.php` / `edit.blade.php`: Form penetapan peran (role) & data karyawan. |
-| **Rekap Laporan (HRD)** | Controller: `app/Http/Controllers/Manajemen/ReportController.php`<br>↳ `resources/views/manajemen/laporan/index.blade.php` | Rekap laporan komprehensif penanganan mesin, filter tanggal, mesin, dan teknisi, serta tampilan khusus cetak (*print-friendly view*). |
+| Tantangan Konvensional Pabrik | Solusi & Inovasi SIMMES |
+| :--- | :--- |
+| **Downtime Mesin Lama**: Operator bingung harus melapor ke siapa, panggilan telepon sering terlewat. | **Siaran WhatsApp Otomatis**: Sekali lapor, bot otomatis menyiarkan detail kendala secara serentak ke WhatsApp seluruh teknisi aktif. |
+| **Penugasan Tidak Adil / Bottleneck**: Supervisor repot membagi tugas manual satu per satu. | **Sistem Siapa Cepat Dia Dapat**: Teknisi pertama yang membuka link dan klik *Ambil Tugas* langsung memegang tiket. Tidak ada spam balasan. |
+| **Ketiadaan Bukti Kerja Fisik**: Sulit membuktikan apakah mesin benar-benar diperbaiki atau hanya dicatat di atas kertas. | **SOP Wajib Foto Sebelum & Sesudah**: Sistem mewajibkan unggah bukti visual foto awal rusak dan foto akhir pemulihan mesin. |
+| **Jadwal Servis Rutin Sering Terlewat**: Mesin tiba-tiba rusak total karena telat ganti oli atau bearing. | **Auto-Rescheduling & Reminders**: Scheduler harian memicu reminder WhatsApp (H-7, H-1, Hari-H, Terlambat). Saat selesai, siklus berikutnya otomatis terjadwal. |
+| **UX Kaku di HP Teknisi**: Aplikasi web desktop biasa sulit dibuka lewat smartphone teknisi di lantai produksi. | **Mobile-First Touch UI**: Bottom navigation bar, modal popup timbul di tengah, floating action button, dan dialog konfirmasi kustom selaras brand. |
 
 ---
 
-### C. Modul Pelaporan Tiket & WhatsApp Gateway
+## 2. Hak Akses Pengguna (Role & Permissions)
 
-| Komponen | Lokasi File | Fungsi & Keterhubungan |
-| :--- | :--- | :--- |
-| **Form Lapor Cepat** | `app/Http/Controllers/TicketReportController.php`<br>↳ `resources/views/tiket/lapor.blade.php`<br>↳ `resources/views/tiket/sukses.blade.php` | Form lapor kerusakan mesin dengan pemilihan mesin pintar (*picker/lookup*), input kendala, upload media (foto/video), dan penentuan tingkat urgensi. Setelah tiket tersimpan, memicu otomatis siaran serentak ke WA seluruh teknisi. |
-| **WhatsApp Service Gateway** | `app/Services/WhatsAppService.php` | - Menghubungkan aplikasi ke API Fonnte (`https://api.fonnte.com/send`).<br>- Normalisasi format nomor internasional (`628...`).<br>- `broadcastToAllTechnicians()`: Mengirim siaran serentak multi-target (koma) ke seluruh teknisi aktif.<br>- `sendTicketAssignment()`: Kirim notifikasi penugasan tiket perorangan.<br>- `sendScheduleReminder()`: Pengingat agenda maintenance (H-7, H-1, Hari-H, Terlambat).<br>- `makeBroadcastShareLink()`: Link manual share WhatsApp Web / Grup WA. |
-| **Automasi Pengingat CLI** | `app/Console/Commands/SendMaintenanceReminders.php`<br>↳ `routes/console.php` | Menjalankan scheduler harian (`simmes:reminders`) untuk memindai jadwal pemeliharaan dan mengirim notifikasi otomatis jika jadwal mendekati batas waktu. |
-
----
-
-### D. Modul Autentikasi & Manajemen Akun
-
-| Komponen | Lokasi File | Fungsi & Keterhubungan |
-| :--- | :--- | :--- |
-| **Splash Screen** | `resources/views/splash.blade.php` | Halaman selamat datang dengan pengalihan otomatis sesuai status sesi login pengguna. |
-| **Login & Logout** | `app/Http/Controllers/Auth/LoginController.php`<br>↳ `resources/views/auth/login.blade.php` | Otentikasi NIK / Email dan Kata Sandi, proteksi *throttling* percobaan login gagal. |
-| **Registrasi Pengguna** | `app/Http/Controllers/Auth/RegisterController.php`<br>↳ `resources/views/auth/register.blade.php` | Registrasi akun baru (memerlukan persetujuan Manajemen sebelum dapat login jika status `menunggu`). |
-| **Home Redirect** | `app/Http/Controllers/HomeRedirectController.php`<br>↳ `app/Http/Controllers/DashboardController.php` | Mengarahkan user yang telah login otomatis ke `/manajemen` (jika role manajemen) atau `/teknisi` (jika role teknisi). |
-| **Middleware Role & Status** | `app/Http/Middleware/CheckRole.php`<br>`app/Http/Middleware/EnsureAccountIsActive.php` | Memastikan hanya user berstatus aktif dan memiliki hak akses sesuai yang dapat membuka endpoint tertentu. |
-
----
-
-## 3. Alur Kerja Aplikasi (Application Workflows)
-
-### Workflow 1: Pelaporan Tiket & Siaran WA Serentak ("Siapa Cepat Dia Dapat")
-```text
-[Operator / Lapangan] ──> Buka Menu Lapor Kerusakan
-                                │
-                                ▼
-                       Pilih Mesin & Unggah Bukti
-                                │
-                                ▼
-                       Klik "Kirim Laporan"
-                                │
-               ┌────────────────┴────────────────┐
-               ▼                                 ▼
-      Data Tiket Disimpan            WhatsAppService Broadcast
-      (Status: 'dilaporkan')         (Kirim serentak ke nomor seluruh
-      (technician_id = null)          teknisi via Fonnte Gateway)
-                                                 │
-                                                 ▼
-                                     Pesan Masuk ke HP Teknisi:
-                                     "👉 Silakan buka website untuk
-                                      mengambil tugas: [Link Tiket]"
+```
+                     ┌───────────────────────────┐
+                     │   SIMMES Authentication   │
+                     └─────────────┬─────────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    ▼                             ▼
+       ┌────────────────────────┐    ┌────────────────────────┐
+       │   ROLE: MANAJEMEN      │    │    ROLE: TEKNISI       │
+       │  (Desktop / Tablet)    │    │ (Mobile-First Screen)  │
+       └────────────────────────┘    └────────────────────────┘
 ```
 
-1. Pelapor (Operator, Teknisi, atau Manajemen) mengisi form lapor kerusakan mesin di halaman `/manajemen/lapor` atau `/teknisi/laporan/buat`.
-2. Sistem menyimpan tiket dengan status awal `dilaporkan` dan kolom `technician_id` kosong (`null`), yang menandakan tugas ini **terbuka untuk siapa saja**.
-3. `WhatsAppService::broadcastToAllTechnicians()` dijalankan secara otomatis:
-   - Mengambil seluruh nomor telepon teknisi aktif dari basis data.
-   - Mengirimkan satu pesan siaran serentak melalui Fonnte dengan target multi-nomor:
-     ```text
-     🚨 SIMMES - PEMBERITAHUAN TIKET PERBAIKAN BARU
-     (SISTEM: SIAPA CEPAT DIA DAPAT)
+### A. Role Manajemen (`manajemen`)
+* **Dashboard KPI**: Real-time counter (Mesin Aktif, Sedang Diperbaiki, Laporan Menunggu, Tiket Terlambat).
+* **Manajemen Aset Mesin**: CRUD data mesin pabrik, import data massal CSV, cetak barcode/lookup code.
+* **Jadwal Pemeliharaan**: Pembuatan agenda servis berkala, tampilan tabel & kalender bulanan.
+* **Manajemen Teknisi & Akun**: Pendaftaran teknisi baru (modal cepat popup), persetujuan akun pending, monitoring beban kerja.
+* **Rekapitulasi & Cetak Laporan (HRD / Direksi)**: Filter laporan per rentang tanggal, status, teknisi, dan cetak ramah kertas (*print-friendly view*).
+* **WhatsApp Gateway Diagnostic**: Tombol uji koneksi dan tes kirim pesan API Fonnte.
 
-     No. Tiket    : TKT-202611-001
-     Mesin Rusak  : Mesin Press 2
-     Keluhan      : Suhu motor panas berlebih...
-
-     👉 Silakan buka website untuk mengambil tugas:
-     http://127.0.0.1:8000/teknisi/tugas/12
-     ```
-4. Pelapor diarahkan ke layar sukses ([`tiket/sukses.blade.php`](file:///c:/laragon/www/simmes-app/resources/views/tiket/sukses.blade.php)) yang menampilkan status apakah siaran WA berhasil dikirim atau gateway sedang offline.
+### B. Role Teknisi (`teknisi`)
+* **Beranda Responsif**: Notifikasi tiket terbuka (*floating hero*), statistik tugas perorangan, dan pengingat jadwal mendesak.
+* **Klaim Tugas Lapangan**: Menerima tautan siaran WA, klaim tiket terbuka secara mandiri (*first-come first-served*).
+* **Lembar Kerja SOP Teknisi**:
+  1. *Fase 1*: Ambil tugas & unggah foto sebelum perbaikan.
+  2. *Fase 2*: Tindakan teknis dan pencatatan suku cadang (*spare parts*).
+  3. *Fase 3*: Unggah foto sesudah perbaikan.
+  4. *Fase 4*: Konfirmasi selesai 100% dan update status mesin kembali aktif.
+* **Pengerjaan Maintenance Modal Pop-up**: Eksekusi pemeliharaan rutin tanpa pindah halaman via modal tengah (*centered popup*), upload foto bukti sebelum/sesudah, dan integrasi tombol laporan instan ke WhatsApp Manajemen.
+* **Lapor Kerusakan Mandiri**: Formulir cepat pelaporan kerusakan langsung dari area kerja lapangan.
+* **Profil & Tes WhatsApp**: Uji mandiri nomor WhatsApp untuk memastikan nomor siap menerima siaran sistem.
 
 ---
 
-### Workflow 2: Pengerjaan & Lembar Kerja Teknisi (SOP Foto Sebelum & Sesudah)
-```text
-[Teknisi di Lapangan] ──> Buka Tautan dari WhatsApp
-                                │
-                                ▼
-                     Buka Lembar Kerja Tiket
-                                │
-                                ▼
-                      Klik "Ambil Tugas Ini"
-                                │
-               ┌────────────────┴────────────────┐
-               ▼                                 ▼
-         Tiket Terkunci                 Tanpa Notifikasi
-       (technician_id diisi              (Tidak membebani WA
-        status: 'diproses')               dengan spam pesan)
-               │
-               ▼
-   [SOP Tahap 1: Foto Sebelum] ──> Unggah kondisi mesin awal rusak
-               │
-               ▼
-   [SOP Tahap 2: Eksekusi]     ──> Catat tindakan teknis & sparepart
-               │
-               ▼
-   [SOP Tahap 3: Foto Sesudah] ──> Unggah bukti mesin kembali normal
-               │
-               ▼
-   [SOP Tahap 4: Selesaikan]   ──> Klik "Tandai 100% Selesai"
-                                   (Tiket & Mesin berstatus 'selesai')
+## 3. Entity Relationship Diagram (ERD)
+
+Berikut adalah relasi antar-tabel dalam basis data relasional `simmes_db`:
+
+```mermaid
+erDiagram
+    users ||--o{ tickets : "reports (reporter_id)"
+    users ||--o{ tickets : "assigned_to (technician_id)"
+    users ||--o{ maintenance_schedules : "assigned_to (technician_id)"
+    users ||--o{ ticket_logs : "creates (user_id)"
+    users ||--o{ users : "approved_by (approved_by)"
+
+    machines ||--o{ tickets : "has"
+    machines ||--o{ maintenance_schedules : "scheduled_for"
+
+    tickets ||--o{ ticket_media : "contains"
+    tickets ||--o{ ticket_logs : "tracks"
+    tickets ||--o| maintenance_schedules : "associated_with (ticket_id)"
+
+    users {
+        bigint id PK
+        string nik UK "Nomor Induk Karyawan"
+        string name "Nama Lengkap"
+        string email UK "Akun Login"
+        string password "Hashed Password"
+        enum role "manajemen, teknisi"
+        enum status "aktif, menunggu, nonaktif"
+        string department "Departemen Kerja"
+        string bagian "Spesialisasi / Bagian"
+        string job_title "Jabatan Karyawan"
+        string work_location "Lokasi Pabrik / Workshop"
+        string whatsapp "Nomor WhatsApp (628...)"
+        bigint approved_by FK "Manager Penyetuju"
+        datetime approved_at
+        timestamps created_at_updated_at
+    }
+
+    machines {
+        bigint id PK
+        string code UK "Kode Mesin (MSN-001)"
+        string name "Nama Mesin"
+        string category "Kategori Mesin"
+        string model "Model / Seri"
+        string serial_number "Nomor Seri Pabrik"
+        string location "Lokasi / Lantai Pabrik"
+        string condition "Kondisi Fisik"
+        smallint maintenance_interval_months "Siklus Rutin (Bulan)"
+        enum status "aktif, dilaporkan, diproses, nonaktif"
+        date last_service_at "Tanggal Servis Terakhir"
+        json media "Dokumentasi Awal"
+        timestamps created_at_updated_at
+    }
+
+    tickets {
+        bigint id PK
+        string code UK "No Tiket (TK-0101)"
+        bigint machine_id FK "Mesin Terkait"
+        bigint reporter_id FK "Pelapor (Nullable)"
+        bigint technician_id FK "Teknisi Pengklaim (Nullable)"
+        string type "insiden / rutin"
+        text complaint "Keluhan / Kerusakan"
+        enum urgency "rendah, sedang, tinggi"
+        enum status "dilaporkan, ditugaskan, diproses, selesai"
+        tinyint progress "0, 25, 50, 75, 100"
+        string action "Tindakan Perbaikan Teknis"
+        string spareparts "Suku Cadang Digunakan"
+        datetime due_at "Batas Waktu"
+        datetime started_at "Waktu Mulai Kerja"
+        datetime finished_at "Waktu Selesai Kerja"
+        timestamps created_at_updated_at
+    }
+
+    ticket_media {
+        bigint id PK
+        bigint ticket_id FK "Tiket Terkait"
+        enum phase "report, before, after"
+        enum kind "photo, video"
+        string path "Storage Path File"
+        timestamps created_at_updated_at
+    }
+
+    ticket_logs {
+        bigint id PK
+        bigint ticket_id FK "Tiket Terkait"
+        bigint user_id FK "Pengubah Status"
+        string label "Label Aksi Linimasa"
+        text note "Catatan Riwayat"
+        timestamps created_at_updated_at
+    }
+
+    maintenance_schedules {
+        bigint id PK
+        bigint machine_id FK "Mesin Target"
+        bigint technician_id FK "Teknisi Pelaksana (Nullable)"
+        bigint ticket_id FK "Tiket Terkait (Nullable)"
+        string type "rutin / insiden"
+        string task "Uraian Pekerjaan Maintenance"
+        string interval_label "Label Interval (3 Bulan)"
+        smallint interval_months "Interval Bulan"
+        date due_date "Tanggal Jatuh Tempo"
+        string due_time "Jam Pengerjaan (HH:mm)"
+        tinyint progress "0, 25, 50, 75, 100"
+        enum status "terjadwal, dikerjakan, selesai"
+        string spareparts "Part / Bahan Pengganti"
+        text notes "Catatan Hasil Perawatan"
+        string before_path "Foto Bukti Sebelum"
+        string after_path "Foto Bukti Sesudah"
+        date completed_at "Tanggal Diselesaikan"
+        timestamps created_at_updated_at
+    }
 ```
 
-1. Para teknisi menerima notifikasi WA secara bersamaan.
-2. Siapa pun teknisi yang pertama membuka tautan dan menekan tombol **"Ambil Tugas Ini"**:
-   - Tiket langsung ditetapkan kepada dirinya (`technician_id = auth()->id()`).
-   - Status tiket berubah menjadi `diproses` dan status mesin menjadi `diproses`.
-   - **Tidak ada notifikasi balasan/spam** yang dikirimkan saat klaim tiket berhasil.
-   - Jika ada teknisi lain yang menekan tautan setelahnya, sistem menolak klaim dan menampilkan info bahwa tugas telah diambil oleh teknisi lain.
-3. Teknisi menjalankan SOP pengerjaan pada halaman [`detail.blade.php`](file:///c:/laragon/www/simmes-app/resources/views/teknisi/detail.blade.php):
-   - **Upload Foto Kondisi Awal (*Sebelum*)**: Wajib mendokumentasikan kerusakan visual awal.
-   - **Catat Tindakan & Suku Cadang**: Memasukkan rincian penggantian bearing, seal, pelumasan, dll.
-   - **Upload Foto Kondisi Akhir (*Sesudah*)**: Mendokumentasikan kondisi mesin yang telah pulih.
-   - **Selesaikan Tugas**: Menekan tombol "Selesai 100%". Status tiket menjadi `selesai`, dan mesin kembali siap operasi (`aktif`).
+---
+
+## 4. Struktur Arsitektur & Direktori Kode
+
+Aplikasi dibangun mengikuti standar **Model-View-Controller (MVC)** Laravel dengan pemisahan domain yang rapi:
+
+```
+simmes-app/
+├── app/
+│   ├── Console/Commands/
+│   │   └── SendMaintenanceReminders.php   # Cron CLI scheduler notifikasi pengingat
+│   ├── Enums/
+│   │   ├── AccountStatus.php              # Enum status akun (aktif, menunggu, nonaktif)
+│   │   └── Role.php                       # Enum peran pengguna (manajemen, teknisi)
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Auth/                      # LoginController, RegisterController
+│   │   │   ├── Manajemen/                 # Dashboard, Machine, Ticket, Schedule, Technician, User, Report
+│   │   │   ├── Teknisi/                   # Home, Task, Schedule, Report, Profile
+│   │   │   ├── DashboardController.php    # Router landing page
+│   │   │   ├── HomeRedirectController.php # Redirection router sesuai role akun
+│   │   │   └── TicketReportController.php # Form lapor insiden cepat & trigger WhatsApp
+│   │   └── Middleware/
+│   │       ├── CheckRole.php              # Proteksi prefix /manajemen & /teknisi
+│   │       └── EnsureAccountIsActive.php  # Verifikasi status akun aktif sebelum akses
+│   ├── Models/
+│   │   ├── Concerns/HasSimmesRole.php     # Helper trait peran pengguna & initials
+│   │   ├── Machine.php                    # Model aset mesin pabrik
+│   │   ├── MaintenanceSchedule.php        # Model jadwal preventif berkala
+│   │   ├── Ticket.php                     # Model tiket perbaikan insiden
+│   │   ├── TicketLog.php                  # Model audit trail log aktivitas tiket
+│   │   ├── TicketMedia.php                # Model foto bukti sebelum/sesudah
+│   │   └── User.php                       # Model pengguna & autentikasi
+│   └── Services/
+│       └── WhatsAppService.php            # Service integrasi Fonnte Gateway (Broadcast & Direct WA)
+├── database/
+│   ├── migrations/                        # Skema database relasional
+│   └── seeders/                           # Akun default manajemen, teknisi, dan mesin dummy
+├── public/
+│   ├── css/simmes.css                     # Desain sistem SIMMES (Palet warna crimson, badge, modal)
+│   └── js/simmes.js                       # Skrip audio chiming, polling live alert, modal
+├── resources/views/
+│   ├── layouts/
+│   │   ├── auth.blade.php                 # Layout halaman login & register
+│   │   ├── manager.blade.php              # Layout portal desktop manager
+│   │   └── technician.blade.php           # Layout antarmuka ponsel teknisi
+│   ├── manajemen/                         # View folder modul manajemen
+│   ├── teknisi/                           # View folder modul teknisi
+│   ├── partials/
+│   │   ├── confirm-modal.blade.php        # Modal konfirmasi kustom bertema crimson
+│   │   ├── flash.blade.php                # Alert flash notification gradient
+│   │   ├── icon.blade.php                 # SVG icon registry
+│   │   └── quick-technician-modal.blade.php # Modal popup tambah teknisi cepat
+│   └── tiket/                             # View lapor insiden & layar sukses
+└── routes/
+    ├── web.php                            # Root routing bootstrap
+    ├── simmes.php                         # Definisi seluruh rute aplikasi (Prefix & Middleware)
+    └── console.php                        # Jadwal tugas otomatis harian
+```
 
 ---
 
-### Workflow 3: Pemeliharaan Rutin / Berkala (Preventive Maintenance)
-1. **Perencanaan oleh Manajemen**:
-   - Manajemen membuka menu **Jadwal Maintenance** (`/manajemen/jadwal/baru`).
-   - Memilih mesin target, tanggal jatuh tempo, jam pengerjaan, dan teknisi pelaksana.
-2. **Pengingat Otomatis**:
-   - Sistem CLI Scheduler (`simmes:reminders`) memindai jadwal setiap hari pukul 07:00 WIB.
-   - Notifikasi WhatsApp dikirimkan ke teknisi pelaksana pada H-7, H-1, Hari-H, atau jika jadwal terlewat (*overdue*).
-3. **Pengerjaan Jadwal**:
-   - Teknisi dapat melihat agenda servis di menu **Jadwal** di aplikasi ponselnya.
-   - Manajemen dapat mengonversi jadwal menjadi lembar tiket pengerjaan mandiri melalui tombol **"Buat Tiket Pengerjaan"**.
-   - Setelah servis berkala tuntas, tanggal servis terakhir mesin (*last_service_at*) otomatis diperbarui.
+## 5. Diagram Alur Sistem (System Flowcharts)
 
----
-
-### Workflow 4: Monitoring KPI & Rekap Laporan Manajemen
-1. **Monitoring Real-Time di Dashboard Manajemen**:
-   - 4 Kartu KPI menghitung secara otomatis: jumlah mesin aktif, mesin yang sedang dalam penanganan, laporan baru yang belum diambil teknisi, dan tiket yang melewati batas waktu (*overdue*).
-   - Tab Room memudahkan supervisor berganti fokus antara tiket kerusakan aktif, jadwal pemeliharaan mendatang, dan riwayat pekerjaan yang sudah selesai.
-2. **Evaluasi & Rekap HRD/Direksi**:
-   - Melalui menu **Laporan** (`/manajemen/laporan`), pengelola dapat memfilter riwayat servis berdasarkan rentang tanggal, filter jenis mesin, atau filter teknisi spesifik.
-   - Tersedia tombol **Cetak Laporan** yang langsung menyesuaikan tata letak halaman agar siap dicetak (*Print/PDF format*) lengkap dengan ringkasan biaya, suku cadang, dan durasi kerja.
-
----
-
-## 4. Diagram Alur Sistem (Mermaid)
+### A. Alur Autentikasi & Role Gateway
+Diagram alur ketika pengguna mengakses sistem, login, dan diarahkan ke antarmukanya masing-masing:
 
 ```mermaid
 flowchart TD
-    %% Roles
-    User([Pelapor / Operator])
-    Mgr([Manajemen / Supervisor])
-    Tech([Teknisi Lapangan])
+    Start([User Membuka Aplikasi]) --> CheckSession{Sudah Login?}
+    CheckSession -->|Belum| LoginPage[Halaman Login: NIK / Email + Password]
+    CheckSession -->|Sudah| CheckRole{Role Pengguna?}
 
-    %% Ticket Creation
-    User -->|1. Lapor Mesin Rusak| CreateTicket[Form Pelaporan Tiket]
-    Mgr -->|1b. Buat Tiket Manual| CreateTicket
-    CreateTicket --> SaveTicket[(Database: simmes_db)]
+    LoginPage --> AttemptLogin[Proses Otentikasi]
+    AttemptLogin --> AuthValid{Kredensial Valid?}
+    AuthValid -->|Salah| ErrorFlash[Tampilkan Pesan Error] --> LoginPage
+    AuthValid -->|Benar| CheckActive{Status Akun?}
 
-    %% Broadcast Event
-    SaveTicket -->|2. Trigger Broadcast| WAService[WhatsAppService Multi-Target]
-    WAService -->|3. HTTP POST Serentak| Fonnte[Gateway Fonnte API]
-    Fonnte -->|4. Siaran WA Masuk Bareng| TechGroup[Seluruh HP Teknisi Aktif]
+    CheckActive -->|Menunggu Approval| PendingNotice[Pemberitahuan: Akun Menunggu Persetujuan Manager]
+    CheckActive -->|Nonaktif| BlockNotice[Pemberitahuan: Akun Dinonaktifkan]
+    CheckActive -->|Aktif| CheckRole
 
-    %% Claim & Execution
-    TechGroup -->|5. Buka Link & Klaim Cepat| ClaimCheck{Tiket Masih Kosong?}
-    ClaimCheck -->|Ya: Pertama Kali| LockTicket[Tiket Terkunci ke Teknisi Tersebut]
-    ClaimCheck -->|Tidak: Keduluan| DenyClaim[Pemberitahuan: Sudah Diambil Rekan Lain]
-
-    LockTicket --> WorkDesk[Lembar Kerja SOP Teknisi]
-    WorkDesk -->|Unggah Foto Awal| PhotoBefore[Foto Sebelum Perbaikan]
-    PhotoBefore -->|Servis & Catat Part| ActionParts[Input Tindakan & Sparepart]
-    ActionParts -->|Unggah Foto Selesai| PhotoAfter[Foto Sesudah Perbaikan]
-    PhotoAfter -->|Klik Selesai 100%| DoneTicket[Status Selesai]
-
-    DoneTicket --> MgrDashboard[Dashboard & Rekap Manajemen]
+    CheckRole -->|manajemen| ManagerPortal[Masuk ke Portal Manager /manajemen]
+    CheckRole -->|teknisi| TechPortal[Masuk ke Portal Teknisi /teknisi]
 ```
 
 ---
 
-## 5. Skema Basis Data (Database Tables)
+### B. Alur Laporan Insiden & Siaran WA ("Siapa Cepat Dia Dapat")
+Diagram pelaporan kerusakan mesin hingga tiket tersiar serentak ke WhatsApp para teknisi:
 
-Aplikasi menggunakan basis data relasional MySQL (`simmes_db`) dengan tabel-tabel utama berikut:
+```mermaid
+flowchart TD
+    User([Operator / Teknisi / Manager]) --> OpenReport[Buka Form Lapor Kerusakan]
+    OpenReport --> InputData[Pilih Mesin, Tingkat Urgensi, Uraian Kendala & Foto]
+    InputData --> SubmitReport[Klik Kirim Laporan]
 
+    SubmitReport --> DBInsert[(Simpan Tiket ke DB\nstatus: 'dilaporkan'\ntechnician_id: NULL)]
+    DBInsert --> TriggerWA[Panggil WhatsAppService::broadcastToAllTechnicians]
+    
+    TriggerWA --> GetTechs[(Ambil Nomor WA Seluruh Teknisi Aktif)]
+    GetTechs --> FonnteAPI[Kirim HTTP POST ke API Gateway Fonnte]
+    FonnteAPI --> BroadcastAll[Pesan Masuk Serentak ke WhatsApp Seluruh Teknisi]
+    
+    BroadcastAll --> WAMsg["📱 Pesan WA:
+    🚨 SIMMES - TIKET PERBAIKAN BARU
+    Mesin: Mesin Press 2
+    Urgensi: Tinggi
+    👉 Buka web untuk mengambil: [Link]"]
+    
+    SubmitReport --> SuccessScreen[Layar Sukses Laporan]
 ```
-users (Pengguna: id, nik, name, email, password, role, status, whatsapp, bagian, department)
-  │
-  ├──< tickets (Tiket: id, code, machine_id, reporter_id, technician_id, complaint, urgency, status, due_at, started_at, finished_at, action, spareparts)
-  │      │
-  │      ├──< ticket_media (Lampiran: id, ticket_id, phase [report/before/after], kind [photo/video], path)
-  │      └──< ticket_logs  (Riwayat: id, ticket_id, user_id, action, note, created_at)
-  │
-  ├──< maintenance_schedules (Jadwal: id, machine_id, technician_id, ticket_id, title, due_date, due_time, status, interval_months, last_reminder_sent_at)
-  │
-machines (Aset Mesin: id, code, name, category, model_type, serial_number, location, purchase_date, last_service_at, status, service_interval_months)
-```
-
-- **`users`**: Menyimpan data akun login, role (`manajemen` atau `teknisi`), status verifikasi akun (`aktif`, `menunggu`, `nonaktif`), serta nomor WhatsApp aktif.
-- **`machines`**: Menyimpan inventaris mesin, kode unik mesin (misal: `MSN-001`), lokasi fisik pabrik/lantai, status mesin saat ini (`aktif`, `dilaporkan`, `diproses`, `nonaktif`), dan riwayat tanggal servis.
-- **`tickets`**: Tabel utama penanganan kerusakan mesin (*Corrective Action*). Berisi status progres (`dilaporkan`, `diproses`, `selesai`), tingkat urgensi (`rendah`, `sedang`, `tinggi`), catatan teknis tindakan perbaikan, dan suku cadang yang terpakai.
-- **`ticket_media`**: Menyimpan path file foto atau video yang diunggah teknisi pada setiap fase (fase lapor kendala, fase *sebelum perbaikan*, dan fase *sesudah perbaikan*).
-- **`ticket_logs`**: Mencatat *audit trail* linimasa tiket (kapan tiket dilaporkan, siapa yang mengklaim, kapan pengerjaan dimulai, dan kapan dinyatakan selesai).
-- **`maintenance_schedules`**: Menyimpan jadwal pemeliharaan preventif berkala beserta pelacak waktu kirim notifikasi WhatsApp pengingat.
 
 ---
 
-## 6. Panduan Instalasi & Menjalankan Aplikasi
+### C. Alur Eksekusi SOP Perbaikan Teknisi (Foto Sebelum & Sesudah)
+Diagram pengerjaan di lapangan dengan sistem klaim mandiri tanpa spam:
 
-### Kebutuhan Sistem
-- **PHP** versi 8.2 atau lebih baru.
-- **Composer** versi 2.x.
-- **Node.js** & **NPM** (v18+).
-- **MySQL / MariaDB** (dapat menggunakan paket Laragon / XAMPP).
-- Akun dan Token Perangkat WhatsApp di [fonnte.com](https://fonnte.com).
+```mermaid
+flowchart TD
+    TechGroup([Teknisi-Teknisi Menerima WA]) --> ClickLink[Buka Tautan Tiket di Ponsel]
+    ClickLink --> CheckClaim{Apakah Tiket Masih Kosong?\ntechnician_id == NULL}
 
-### Langkah Instalasi
-1. **Clone / Buka Repositori di Laragon**:
+    CheckClaim -->|Sudah Diambil Orang Lain| Denied[Tampilkan Banner:\n'Tugas Sudah Diambil Rekan Lain']
+    CheckClaim -->|Masih Kosong| ClaimBtn[Klik Tombol 'Ambil Tugas Ini']
+
+    ClaimBtn --> LockTicket[(Update DB:\ntechnician_id = ID Teknisi\nstatus = 'diproses'\nMesin = 'diproses')]
+    LockTicket --> Workdesk[Buka Lembar Pengerjaan SOP]
+
+    Workdesk --> Phase1[Fase 1: Unggah Foto Kondisi Sebelum Perbaikan]
+    Phase1 --> Phase2[Fase 2: Eksekusi Servis, Catat Tindakan & Suku Cadang]
+    Phase2 --> Phase3[Fase 3: Unggah Foto Bukti Hasil Sesudah Perbaikan]
+    Phase3 --> Phase4[Fase 4: Klik Tombol 'Tandai Selesai 100%']
+
+    Phase4 --> CustomConfirm[Muncul Modal Konfirmasi Merah SIMMES]
+    CustomConfirm -->|Setuju| FinalizeJob[(Update DB:\nstatus = 'selesai'\nfinished_at = now()\nMesin = 'aktif')]
+    FinalizeJob --> Summary[Pekerjaan Tuntas & Masuk Rekap Laporan Manajemen]
+```
+
+---
+
+### D. Alur Preventive Maintenance & Penjadwalan Otomatis
+Diagram pemeliharaan berkala dengan pengingat otomatis dan perputaran siklus terjadwal:
+
+```mermaid
+flowchart TD
+    Mgr([Manajemen]) --> CreateSchedule[Buat Jadwal Maintenance Baru\nMesin, Tugas, Tanggal, Jam, Teknisi]
+    CreateSchedule --> SaveSchedule[(Tersimpan di maintenance_schedules\nstatus: 'terjadwal')]
+
+    SaveSchedule --> DailyCron[Scheduler Harian Otomatis\nsimmes:reminders Pukul 07:00 WIB]
+    DailyCron --> CheckDue{Evaluasi Batas Waktu}
+
+    CheckDue -->|H-7 / H-1 / Hari-H| SendReminderWA[Kirim Notifikasi Pengingat ke WA Teknisi]
+    CheckDue -->|Lewat Batas| SendLateWA[Kirim Notifikasi Keterlambatan Overdue]
+
+    SendReminderWA --> TechExecution[Teknisi Membuka Jadwal di Aplikasi]
+    SendLateWA --> TechExecution
+
+    TechExecution --> OpenModal[Klik 'Kerjakan & Laporkan Hasil'\nModal Pop-up Timbul di Tengah Layar]
+    OpenModal --> UploadProof[Unggah Foto Bukti Sebelum & Sesudah\nCatat Suku Cadang & Catatan Perawatan]
+    OpenModal --> CompleteJob[Klik 'Tandai Selesai & Laporkan']
+
+    CompleteJob --> UpdateMachine[(Update Mesin:\nlast_service_at = now()\nstatus = 'aktif')]
+    CompleteJob --> AutoNextCycle{Memiliki Siklus Rutin?}
+    AutoNextCycle -->|Ya: misal 3 bulan| NewSchedule[(Auto Create Jadwal Berikutnya\ndue_date = today + 3 bulan)]
+    AutoNextCycle -->|Tidak| DoneFinish[Selesai & Tersimpan di Riwayat]
+    CompleteJob --> ShareWAMgr[Tombol 1-Klik Kirim Laporan Selesai ke WA Manager]
+```
+
+---
+
+## 6. Skenario Demonstrasi untuk Presentasi
+
+Gunakan skenario berikut agar presentasi dan demonstrasi fitur berjalan runtut, interaktif, dan memukau para penguji/audiens:
+
+```text
+               SKENARIO DEMO PRESENTASI SIMMES (5 MENIT)
+┌───────────────────────────────────────────────────────────────────────┐
+│ 1. Pembuka (Portal Manager Desktop):                                  │
+│    - Buka http://127.0.0.1:8000/login dengan akun Manajemen.          │
+│    - Tunjukkan Dashboard KPI, status mesin aktif vs perbaikan.        │
+│    - Tunjukkan fitur Popup Tambah Teknisi Cepat (Modal timbul tengah). │
+│                                                                       │
+│ 2. Simulasi Terjadinya Kerusakan Mesin:                               │
+│    - Buka menu Lapor Kerusakan (/manajemen/lapor).                    │
+│    - Pilih mesin "Mesin Press 2", pilih Urgensi Tinggi, upload foto.  │
+│    - Klik Kirim Laporan: Tunjukkan status siaran WA serentak berhasil.│
+│                                                                       │
+│ 3. Respon Teknisi Lapangan (Sistem Siapa Cepat Dia Dapat):            │
+│    - Login sebagai Teknisi A di tab incognito / mode ponsel (F12).    │
+│    - Tunjukkan banner hero "⚡ TERBUKA - 1 Laporan Terbuka".          │
+│    - Klik "Ambil Tugas": Tunjukkan tiket langsung terkunci.           │
+│    - (Opsional) Buka akun Teknisi B: Perlihatkan bahwa Teknisi B      │
+│      diberitahu bahwa tiket sudah diambil oleh Teknisi A.             │
+│                                                                       │
+│ 4. Eksekusi SOP Lapangan (Foto Bukti Sebelum & Sesudah):              │
+│    - Di akun Teknisi A: Unggah foto Sebelum, input sparepart.         │
+│    - Unggah foto Sesudah.                                             │
+│    - Klik Selesai: Tunjukkan Dialog Konfirmasi Merah Khas SIMMES.     │
+│    - Status tiket dan mesin kembali aktif 100%.                       │
+│                                                                       │
+│ 5. Demonstrasi Pemeliharaan Rutin (Preventive Maintenance):           │
+│    - Buka menu Jadwal Perawatan di HP Teknisi.                        │
+│    - Klik "Kerjakan & Laporkan Hasil": Form popup timbul di tengah.   │
+│    - Selesaikan pekerjaan dan klik tombol "Kirim Laporan WA Manager". │
+│                                                                       │
+│ 6. Penutup (Rekap Laporan & Print View):                              │
+│    - Kembali ke Portal Manajemen, buka menu Laporan.                  │
+│    - Tunjukkan riwayat perbaikan yang baru selesai terekam otomatis.  │
+│    - Klik "Cetak Laporan": Tunjukkan tampilan print resmi pabrik.     │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 7. Panduan Instalasi & Menjalankan Aplikasi
+
+### Kebutuhan Perangkat Lunak
+* **PHP** `>= 8.2` (dengan ekstensi: `pdo_mysql`, `mbstring`, `fileinfo`, `openssl`).
+* **Composer** `>= 2.x`.
+* **MySQL** atau **MariaDB** (dapat menggunakan Laragon atau XAMPP).
+* **Peramban Web Modern** (Google Chrome, Microsoft Edge, atau Safari).
+* *(Opsional)* Akun dan Token Perangkat di [Fonnte WhatsApp Gateway](https://fonnte.com).
+
+### Langkah-Langkah Menjalankan
+1. **Buka Direktori Proyek**:
    ```bash
    cd c:\laragon\www\simmes-app
    ```
-2. **Install Dependensi Composer & NPM**:
+2. **Install Dependensi Composer**:
    ```bash
    composer install
-   npm install && npm run build
    ```
-3. **Konfigurasi Environment (`.env`)**:
-   Salin `.env.example` ke `.env` dan sesuaikan kredensial database dan WhatsApp:
+3. **Konfigurasi Lingkungan (`.env`)**:
+   Salin `.env.example` menjadi `.env` jika belum ada:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   Pastikan pengaturan database di `.env` sesuai:
    ```env
-   APP_NAME=SIMMES
+   APP_NAME="SIMMES"
+   APP_ENV=local
+   APP_DEBUG=true
    APP_URL=http://127.0.0.1:8000
 
    DB_CONNECTION=mysql
@@ -297,23 +441,30 @@ machines (Aset Mesin: id, code, name, category, model_type, serial_number, locat
    DB_USERNAME=root
    DB_PASSWORD=
 
-   # Konfigurasi WhatsApp Gateway (Fonnte)
-   FONNTE_TOKEN=TokenPerangkatAndaDiFonnte
-   WA_TARGET_PHONE=081234567890
+   # WhatsApp Gateway Fonnte (Opsional untuk pengiriman pesan nyata)
+   FONNTE_TOKEN=TOKEN_FONNTE_ANDA
    ```
-4. **Migrasi Database & Seeder**:
+4. **Migrasi Database & Data Awal (Seeder)**:
    ```bash
    php artisan migrate --seed
    ```
-5. **Membuat Symlink Penyimpanan Media**:
+5. **Buat Symlink Penyimpanan File**:
    ```bash
    php artisan storage:link
    ```
-6. **Menjalankan Server**:
+6. **Jalankan Server Lokal**:
    ```bash
    php artisan serve
    ```
-   Akses aplikasi melalui peramban di: `http://127.0.0.1:8000`
+   Buka peramban pada alamat: `http://127.0.0.1:8000`
+
+### Akun Demo Bawaan Seeder:
+* **Akun Portal Manajemen**:
+  * Email / NIK: `manager@simmes.com` / `MGR001`
+  * Kata Sandi: `password`
+* **Akun Teknisi Lapangan**:
+  * Email / NIK: `teknisi@simmes.com` / `TEK001`
+  * Kata Sandi: `password`
 
 ---
-*Dokumentasi ini disusun sebagai acuan teknis arsitektur, integrasi berkas, dan alur operasional Sistem Informasi Monitoring & Maintenance Mesin (SIMMES).*
+*Dokumentasi ini disusun sebagai acuan komprehensif arsitektur, basis data, dan skenario presentasi Sistem Informasi Monitoring & Maintenance Mesin (SIMMES).*

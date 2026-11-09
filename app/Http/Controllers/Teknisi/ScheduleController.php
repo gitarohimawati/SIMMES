@@ -58,10 +58,11 @@ class ScheduleController extends Controller
 
         $r->validate([
             'phase' => 'required|in:before,after',
-            'photo' => 'required|file|mimes:jpeg,png,jpg,webp|max:15360',
+            'photo' => 'required|image|max:20480',
         ], [
             'photo.required' => 'Pilih atau potret foto terlebih dahulu.',
-            'photo.max'      => 'Ukuran foto maksimal 15MB.',
+            'photo.image'    => 'File yang dipilih harus berupa foto/gambar.',
+            'photo.max'      => 'Ukuran foto maksimal 20MB.',
         ]);
 
         $phase = $r->input('phase');
@@ -136,12 +137,21 @@ class ScheduleController extends Controller
         abort_unless($jadwal->technician_id === auth()->id(), 403);
 
         $d = $r->validate([
-            'spareparts'  => 'nullable|string|max:255',
-            'notes'       => 'nullable|string|max:1000',
-            'after_photo' => 'nullable|file|mimes:jpeg,png,jpg,webp|max:15360',
+            'spareparts'   => 'nullable|string|max:255',
+            'notes'        => 'nullable|string|max:1000',
+            'before_photo' => 'nullable|image|max:20480',
+            'after_photo'  => 'nullable|image|max:20480',
         ], [
-            'after_photo.max' => 'Ukuran foto maksimal 15MB.',
+            'before_photo.image' => 'File foto sebelum harus berupa gambar/foto.',
+            'after_photo.image'  => 'File foto sesudah harus berupa gambar/foto.',
+            'before_photo.max'   => 'Ukuran foto maksimal 20MB.',
+            'after_photo.max'    => 'Ukuran foto maksimal 20MB.',
         ]);
+
+        if ($r->hasFile('before_photo')) {
+            $path = $r->file('before_photo')->store("maintenance/{$jadwal->id}", 'public');
+            $jadwal->before_path = $path;
+        }
 
         if ($r->hasFile('after_photo')) {
             $path = $r->file('after_photo')->store("maintenance/{$jadwal->id}", 'public');

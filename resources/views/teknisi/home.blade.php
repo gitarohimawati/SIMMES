@@ -41,14 +41,14 @@
 </div>
 
 @if ($reminders->count())
-<div class="tcard hero">
-  <div class="row between"><b>🔔 Pengingat jadwal</b></div>
+<div class="tcard hero" style="background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1.5px solid var(--rose200);border-left:5px solid var(--brand);margin-bottom:14px;box-shadow:0 4px 14px -4px rgba(177,0,44,0.15)">
+  <div class="row between"><b style="color:var(--r800)">🔔 Pengingat Jadwal Maintenance</b></div>
   @foreach ($reminders as $r)
     <div class="reminder">
       <span class="rem-tag {{ $r['tone'] === 'late' ? 'late' : '' }}">{{ $r['label'] }}</span>
       <div>
-        <b class="small">{{ $r['s']->task }} · {{ $r['s']->machine->code }}</b>
-        <div class="tiny">{{ $r['s']->machine->name }} · {{ $r['s']->due_date->translatedFormat('d M') }}{{ $r['s']->due_time ? ' · Jam '.$r['s']->due_time : '' }}</div>
+        <b class="small">{{ $r['s']->task }} · {{ $r['s']->machine?->code ?? '-' }}</b>
+        <div class="tiny">{{ $r['s']->machine?->name ?? 'Mesin' }} · {{ $r['s']->due_date ? $r['s']->due_date->translatedFormat('d M') : '-' }}{{ $r['s']->due_time ? ' · Jam '.$r['s']->due_time : '' }}</div>
       </div>
     </div>
   @endforeach
@@ -58,8 +58,8 @@
 <div class="sect"><h2>Tugas Perbaikan Saya</h2><a class="link small" href="{{ route('teknisi.tugas.index') }}">Semua</a></div>
 @forelse ($priority as $t)
   <a class="tcard task {{ $t->urgency }}" href="{{ route('teknisi.tugas.show', $t) }}">
-    <div class="t1"><span>{{ $t->code }} · {{ $t->machine->code }}</span>@include('partials.chip', ['v' => $t->display_status])</div>
-    <p><b>{{ $t->machine->name }}, {{ $t->machine->location }}</b><br><span class="muted small">{{ \Illuminate\Support\Str::limit($t->complaint, 70) }}</span></p>
+    <div class="t1"><span>{{ $t->code }} · {{ $t->machine?->code ?? '-' }}</span>@include('partials.chip', ['v' => $t->display_status])</div>
+    <p><b>{{ $t->machine?->name ?? 'Mesin' }}, {{ $t->machine?->location ?? '-' }}</b><br><span class="muted small">{{ \Illuminate\Support\Str::limit($t->complaint, 70) }}</span></p>
     <div class="row between">@include('partials.chip', ['v' => $t->urgency])<div class="progress" style="width:90px"><i style="width:{{ $t->progress }}%"></i></div></div>
   </a>
 @empty
@@ -71,8 +71,8 @@
   @forelse ($schedules as $s)
     <div class="reminder">
       <div style="flex:1">
-        <b class="small">{{ $s->machine->label }}</b>
-        <div class="tiny">{{ $s->task }} · {{ $s->due_date->translatedFormat('d M Y') }}{{ $s->due_time ? ' · Jam '.$s->due_time : '' }}</div>
+        <b class="small">{{ $s->machine?->label ?? $s->machine?->name ?? 'Mesin' }}</b>
+        <div class="tiny">{{ $s->task }} · {{ $s->due_date ? $s->due_date->translatedFormat('d M Y') : '-' }}{{ $s->due_time ? ' · Jam '.$s->due_time : '' }}</div>
       </div>
       @include('partials.chip', ['v' => $s->display_status])
     </div>
@@ -88,7 +88,7 @@
 @if ($recent->count())
 <div class="sect"><h2>Baru selesai</h2></div>
 <div class="tcard">
-  @foreach ($recent as $t)<div class="reminder"><div style="flex:1"><b class="small">{{ $t->code }} · {{ $t->machine->name }}</b><div class="tiny">{{ $t->finished_at?->diffForHumans() }}</div></div>@include('partials.chip', ['v' => 'selesai'])</div>@endforeach
+  @foreach ($recent as $t)<div class="reminder"><div style="flex:1"><b class="small">{{ $t->code }} · {{ $t->machine?->name ?? 'Mesin' }}</b><div class="tiny">{{ $t->finished_at?->diffForHumans() }}</div></div>@include('partials.chip', ['v' => 'selesai'])</div>@endforeach
 </div>
 @endif
 @endsection
