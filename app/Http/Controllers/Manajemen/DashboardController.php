@@ -22,7 +22,7 @@ class DashboardController extends Controller
 
         $tickets = Ticket::with(['machine', 'technician', 'media', 'logs'])->latest()->take(6)->get();
 
-        // Data distribusi tiket untuk grafik donut enam bulan terakhir.
+        // Data tren tiket bulanan untuk enam bulan terakhir.
         $trend = collect(range(5, 0))->map(function ($i) {
             $m = now()->subMonths($i);
             return [

@@ -100,7 +100,7 @@
     </a>
   </div>
 
-  <form method="POST" action="{{ route('teknisi.laporan.destroy', $ticket) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus laporan {{ $ticket->code }} secara permanen?');" style="margin:0">
+  <form method="POST" action="{{ route('teknisi.laporan.destroy', $ticket) }}" data-confirm="Apakah Anda yakin ingin menghapus laporan {{ $ticket->code }} secara permanen?" style="margin:0">
     @csrf
     @method('DELETE')
     <button class="btn block" type="submit" style="color:var(--r700);background:var(--rose50);border-color:var(--rose200);width:100%">

@@ -13,7 +13,7 @@ class TicketController extends Controller
 {
     public function index(Request $r)
     {
-        $q = Ticket::with(['machine', 'technician', 'media', 'logs'])->latest();
+        $q = Ticket::with(['machine', 'technician', 'media', 'logs']);
 
         if ($s = $r->q) {
             $q->where(fn ($w) => $w->where('code', 'like', "%$s%")
@@ -31,6 +31,13 @@ class TicketController extends Controller
         }
         if ($r->urgency) $q->where('urgency', $r->urgency);
         if ($r->location) $q->whereHas('machine', fn ($m) => $m->where('location', $r->location));
+
+        match ($r->input('sort', 'newest')) {
+            'oldest' => $q->orderBy('created_at')->orderBy('id'),
+            'urgency' => $q->orderByRaw("CASE urgency WHEN 'tinggi' THEN 1 WHEN 'sedang' THEN 2 WHEN 'rendah' THEN 3 ELSE 4 END")
+                ->orderByDesc('created_at'),
+            default => $q->latest(),
+        };
 
         return view('manajemen.perbaikan.index', [
             'tickets'   => $q->paginate(12)->withQueryString(),

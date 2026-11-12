@@ -45,7 +45,7 @@
             @include('partials.icon', ['n' => 'edit'])
           </a>
           @if (!$u->is(auth()->user()))
-            <form method="POST" action="{{ route('manajemen.pengguna.destroy', $u) }}" style="display:inline;margin:0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna {{ $u->name }}?');">
+            <form method="POST" action="{{ route('manajemen.pengguna.destroy', $u) }}" style="display:inline;margin:0" data-confirm="Apakah Anda yakin ingin menghapus pengguna {{ $u->name }}?">
               @csrf
               @method('DELETE')
               <button class="btn-icon danger" type="submit" title="Hapus Pengguna">

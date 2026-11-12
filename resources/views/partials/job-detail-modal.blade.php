@@ -72,7 +72,6 @@
           <span class="tiny" style="font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.5px">
             📷 Foto Dokumentasi Pekerjaan
           </span>
-          <span class="tiny muted">Klik foto untuk melihat ukuran penuh</span>
         </div>
 
         {{-- Wadah Foto Berukuran Besar --}}

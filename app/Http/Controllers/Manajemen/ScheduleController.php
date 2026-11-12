@@ -20,17 +20,11 @@ class ScheduleController extends Controller
             ->latest()
             ->get();
 
-        // kartu ringkas ala Figma: Lewat jadwal / Minggu ini / Terjadwal
-        $cards = [
-            'lewat'    => $schedules->filter(fn ($s) => $s->display_status === 'terlambat')->first(),
-            'minggu'   => $schedules->filter(fn ($s) => $s->due_date->between(now()->startOfDay(), now()->addDays(7)))->first(),
-            'terjadwal'=> $schedules->filter(fn ($s) => $s->status === 'terjadwal' && $s->due_date->gt(now()->addDays(7)))->first(),
-        ];
         $history = MaintenanceSchedule::with(['machine.tickets.media', 'machine.tickets.logs', 'technician', 'ticket.media', 'ticket.logs'])->where('status', 'selesai')->latest('completed_at')->take(10)->get();
         $machines = Machine::orderBy('category')->orderBy('name')->get(['id', 'code', 'name', 'category', 'model', 'location']);
         $technicians = User::where('role', 'teknisi')->where('status', 'aktif')->orderBy('name')->get();
 
-        return view('manajemen.jadwal.index', compact('schedules', 'cards', 'history', 'machines', 'technicians'));
+        return view('manajemen.jadwal.index', compact('schedules', 'history', 'machines', 'technicians'));
     }
 
     public function calendar(Request $r)

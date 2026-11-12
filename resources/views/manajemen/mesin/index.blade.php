@@ -13,8 +13,11 @@
     </div>
   </div>
 </div>
-<form class="filters" method="GET" autocomplete="off">
-  <input class="input" name="q" value="{{ request('q') }}" placeholder="Cari mesin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true">
+<form class="filters repair-filters machine-filters" method="GET" autocomplete="off">
+  <div class="repair-search-control">
+    <input class="input" type="search" name="q" value="{{ request('q') }}" placeholder="Cari kode, nama, tipe, atau lokasi mesin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true">
+    <button class="btn primary" type="submit">Cari</button>
+  </div>
   <select class="select" name="location" onchange="this.form.submit()">
     <option value="">Semua lokasi</option>
     @foreach ($locations as $l)<option @selected(request('location') === $l)>{{ $l }}</option>@endforeach
@@ -23,6 +26,15 @@
     <option value="">Semua status</option>
     @foreach (['aktif','dilaporkan','diproses','nonaktif'] as $s)<option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>@endforeach
   </select>
+  <select class="select" name="sort" aria-label="Urutkan mesin" onchange="this.form.submit()">
+    <option value="code" @selected(request('sort', 'code') === 'code')>Urutkan: Kode</option>
+    <option value="name" @selected(request('sort') === 'name')>Nama mesin</option>
+    <option value="location" @selected(request('sort') === 'location')>Lokasi</option>
+    <option value="service" @selected(request('sort') === 'service')>Servis terbaru</option>
+  </select>
+  @if (request()->hasAny(['q', 'location', 'status', 'sort']))
+    <a class="btn repair-reset" href="{{ route('manajemen.mesin.index') }}">Reset</a>
+  @endif
 </form>
 <div class="card tablewrap">
   <table>
@@ -41,7 +53,7 @@
             <a class="btn-icon edit" href="{{ route('manajemen.mesin.edit', $m) }}" title="Edit data mesin">
               @include('partials.icon', ['n' => 'edit'])
             </a>
-            <form method="POST" action="{{ route('manajemen.mesin.destroy', $m) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus mesin {{ $m->code }} ({{ $m->name }})?');" style="display:inline;margin:0">
+            <form method="POST" action="{{ route('manajemen.mesin.destroy', $m) }}" data-confirm="Apakah Anda yakin ingin menghapus mesin {{ $m->code }} ({{ $m->name }})?" style="display:inline;margin:0">
               @csrf
               @method('DELETE')
               <button type="submit" class="btn-icon danger" title="Hapus data mesin">

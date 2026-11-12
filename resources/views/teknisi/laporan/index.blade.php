@@ -109,7 +109,7 @@
         <a class="btn-icon edit" href="{{ route('teknisi.laporan.edit', $t) }}" title="Edit Laporan Perbaikan">
           @include('partials.icon', ['n' => 'edit'])
         </a>
-        <form method="POST" action="{{ route('teknisi.laporan.destroy', $t) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus laporan {{ $t->code }}?');" style="margin:0">
+        <form method="POST" action="{{ route('teknisi.laporan.destroy', $t) }}" data-confirm="Apakah Anda yakin ingin menghapus laporan {{ $t->code }}?" style="margin:0">
           @csrf
           @method('DELETE')
           <button class="btn-icon danger" type="submit" title="Hapus Laporan Perbaikan">

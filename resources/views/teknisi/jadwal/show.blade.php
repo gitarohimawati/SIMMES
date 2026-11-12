@@ -213,7 +213,7 @@
     </div>
 
     <div style="margin-top:18px">
-      <button type="submit" class="btn primary block" style="justify-content:center;font-size:14px;padding:12px;font-weight:700" onclick="return confirm('Apakah pekerjaan maintenance ini telah selesai dan siap dilaporkan?')">
+      <button type="submit" class="btn primary block" style="justify-content:center;font-size:14px;padding:12px;font-weight:700" data-confirm="Apakah pekerjaan maintenance ini telah selesai dan siap dilaporkan?">
         ✓ Tandai Selesai & Beritahu Manajemen
       </button>
     </div>

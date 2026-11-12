@@ -85,6 +85,9 @@ Route::middleware('auth')->group(function () {
         Route::post('tugas/{ticket}/selesai', [T\TaskController::class, 'finish'])->name('tugas.finish');
 
         Route::get('jadwal', [T\ScheduleController::class, 'index'])->name('jadwal');
+        Route::match(['post', 'put'], 'jadwal', function () {
+            return redirect()->route('teknisi.jadwal')->with('error', 'Sesi formulir maintenance telah diperbarui. Silakan buka kembali tugas Anda.');
+        });
         Route::get('jadwal/{jadwal}', [T\ScheduleController::class, 'show'])->name('jadwal.show')->whereNumber('jadwal');
         Route::post('jadwal/{jadwal}/upload', [T\ScheduleController::class, 'upload'])->name('jadwal.upload')->whereNumber('jadwal');
         Route::post('jadwal/{jadwal}/progress', [T\ScheduleController::class, 'progress'])->name('jadwal.progress')->whereNumber('jadwal');

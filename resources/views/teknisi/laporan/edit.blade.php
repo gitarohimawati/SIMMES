@@ -74,7 +74,7 @@
 
 {{-- Form terpisah untuk hapus media per file --}}
 @foreach ($ticket->media as $m)
-  <form id="del-media-{{ $m->id }}" method="POST" action="{{ route('teknisi.laporan.media.destroy', $m) }}" onsubmit="return confirm('Hapus lampiran ini?')" style="display:none">
+  <form id="del-media-{{ $m->id }}" method="POST" action="{{ route('teknisi.laporan.media.destroy', $m) }}" data-confirm="Hapus lampiran ini?" style="display:none">
     @csrf
     @method('DELETE')
   </form>

@@ -269,7 +269,7 @@
                 <a href="{{ route('manajemen.perbaikan.edit', $t) }}" class="btn-icon edit" title="Edit Tiket">
                   @include('partials.icon', ['n' => 'edit'])
                 </a>
-                <form method="POST" action="{{ route('manajemen.perbaikan.destroy', $t) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket {{ $t->code }}?');" style="display:inline;margin:0">
+                <form method="POST" action="{{ route('manajemen.perbaikan.destroy', $t) }}" data-confirm="Apakah Anda yakin ingin menghapus tiket {{ $t->code }}?" style="display:inline;margin:0">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn-icon danger" title="Hapus Tiket">
@@ -378,7 +378,7 @@
               <a href="{{ route('manajemen.perbaikan.edit', $t) }}" class="btn-icon edit" title="Edit Tiket">
                 @include('partials.icon', ['n' => 'edit'])
               </a>
-              <form method="POST" action="{{ route('manajemen.perbaikan.destroy', $t) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket {{ $t->code }}?');" style="display:inline;margin:0">
+              <form method="POST" action="{{ route('manajemen.perbaikan.destroy', $t) }}" data-confirm="Apakah Anda yakin ingin menghapus tiket {{ $t->code }}?" style="display:inline;margin:0">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn-icon danger" title="Hapus Tiket">
@@ -528,7 +528,7 @@
                 <a href="{{ route('manajemen.jadwal.edit', $s) }}" class="btn-icon edit" title="Edit Jadwal">
                   @include('partials.icon', ['n' => 'edit'])
                 </a>
-                <form method="POST" action="{{ route('manajemen.jadwal.destroy', $s) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?');" style="display:inline;margin:0">
+                <form method="POST" action="{{ route('manajemen.jadwal.destroy', $s) }}" data-confirm="Apakah Anda yakin ingin menghapus jadwal ini?" style="display:inline;margin:0">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn-icon danger" title="Hapus Jadwal">
@@ -646,7 +646,7 @@
               <a href="{{ route('manajemen.jadwal.edit', $s) }}" class="btn-icon edit" title="Edit Jadwal">
                 @include('partials.icon', ['n' => 'edit'])
               </a>
-              <form method="POST" action="{{ route('manajemen.jadwal.destroy', $s) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?');" style="display:inline;margin:0">
+              <form method="POST" action="{{ route('manajemen.jadwal.destroy', $s) }}" data-confirm="Apakah Anda yakin ingin menghapus jadwal ini?" style="display:inline;margin:0">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn-icon danger" title="Hapus Jadwal">
@@ -755,7 +755,7 @@
                 <a href="{{ route('manajemen.jadwal.edit', $schedule) }}" class="btn-icon edit" title="Edit Riwayat Jadwal">
                   @include('partials.icon', ['n' => 'edit'])
                 </a>
-                <form method="POST" action="{{ route('manajemen.jadwal.destroy', $schedule) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus riwayat jadwal ini?');" style="display:inline;margin:0">
+                <form method="POST" action="{{ route('manajemen.jadwal.destroy', $schedule) }}" data-confirm="Apakah Anda yakin ingin menghapus riwayat jadwal ini?" style="display:inline;margin:0">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn-icon danger" title="Hapus Riwayat Jadwal">
@@ -859,7 +859,7 @@
               <a href="{{ route('manajemen.jadwal.edit', $schedule) }}" class="btn-icon edit" title="Edit Riwayat Jadwal">
                 @include('partials.icon', ['n' => 'edit'])
               </a>
-              <form method="POST" action="{{ route('manajemen.jadwal.destroy', $schedule) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus riwayat jadwal ini?');" style="display:inline;margin:0">
+              <form method="POST" action="{{ route('manajemen.jadwal.destroy', $schedule) }}" data-confirm="Apakah Anda yakin ingin menghapus riwayat jadwal ini?" style="display:inline;margin:0">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn-icon danger" title="Hapus Riwayat Jadwal">
@@ -936,42 +936,29 @@ function switchDashboardTab(tabId) {
         <h3 style="margin:0;font-size:16px">Tren Tiket Perbaikan (6 Bulan Terakhir)</h3>
         <div class="small muted" style="margin-top:4px">Volume laporan kerusakan bulanan dari seluruh area pabrik.</div>
       </div>
-      <span class="chip" style="background:#f1f5f9;color:#334155;border-color:#e2e8f0;font-size:11.5px">
-        Total: {{ $trend->sum('count') }} Tiket
-      </span>
     </div>
     @php
       $totalTrend = $trend->sum('count');
-      $chartColors = ['#e11d48', '#fb7185', '#f59e0b', '#14b8a6', '#6366f1', '#8b5cf6'];
-      $angle = 0;
-      $segments = $trend->values()->map(function ($item, $index) use (&$angle, $totalTrend, $chartColors) {
-          $start = $angle;
-          $angle += $totalTrend ? ($item['count'] / $totalTrend) * 360 : 0;
-
-          return [
-              ...$item,
-              'color' => $chartColors[$index],
-              'start' => $start,
-              'end' => $angle,
-          ];
-      });
-      $chartGradient = $totalTrend
-          ? $segments->map(fn ($segment) => "{$segment['color']} {$segment['start']}deg {$segment['end']}deg")->implode(', ')
-          : '#e2e8f0 0deg 360deg';
+      $maxTrendCount = max(1, (int) $trend->max('count'));
+      $averageTrend = $trend->count() ? $totalTrend / $trend->count() : 0;
+      $peakMonth = $trend->sortByDesc('count')->first();
+      $segments = $trend->values();
     @endphp
-    <div class="ticket-donut-chart" style="--chart-gradient: conic-gradient({{ $chartGradient }});">
-      <div class="ticket-donut" role="img" aria-label="Distribusi {{ $totalTrend }} tiket perbaikan selama enam bulan terakhir">
-        <div class="ticket-donut__center">
-          <strong>{{ $totalTrend }}</strong>
-          <span>Total tiket</span>
-        </div>
-      </div>
-      <div class="ticket-donut__legend">
+    <div class="trend-summary-grid">
+      <div class="trend-summary-card trend-summary-total"><span>Total tiket</span><b>{{ number_format($totalTrend, 0, ',', '.') }}</b></div>
+      <div class="trend-summary-card"><span>Rata-rata per bulan</span><b>{{ number_format($averageTrend, 1, ',', '.') }}</b></div>
+      <div class="trend-summary-card"><span>Bulan tertinggi</span><b>{{ $totalTrend ? $peakMonth['label'].' · '.$peakMonth['count'] : 'Belum ada' }}</b></div>
+    </div>
+    <div class="trend-horizontal-chart" role="img" aria-label="Jumlah tiket per bulan; skala batang sampai {{ $maxTrendCount }} tiket">
+      <div class="trend-scale"><span>Jumlah tiket per bulan</span><span>Skala 0–{{ $maxTrendCount }}</span></div>
+      <div class="trend-month-list">
         @foreach ($segments as $segment)
-          <div class="ticket-donut__legend-item">
-            <span class="ticket-donut__legend-dot" style="--segment-color: {{ $segment['color'] }}"></span>
-            <span>{{ $segment['label'] }}</span>
-            <b>{{ $segment['count'] }}</b>
+          <div class="trend-month-row" aria-label="{{ $segment['label'] }}: {{ $segment['count'] }} tiket">
+            <span class="trend-month-label">{{ $segment['label'] }}</span>
+            <div class="trend-month-track">
+              <span style="width:{{ round($segment['count'] / $maxTrendCount * 100, 1) }}%"></span>
+            </div>
+            <b class="trend-month-count">{{ number_format($segment['count'], 0, ',', '.') }}</b>
           </div>
         @endforeach
       </div>
@@ -997,7 +984,7 @@ function switchDashboardTab(tabId) {
         <span class="badge-wa">Online 24/7</span>
       </div>
 
-      <div style="display:grid;gap:10px;font-size:12.5px;color:var(--ink2)">
+      <div class="dashboard-wa-list" style="display:grid;gap:10px;font-size:12.5px;color:var(--ink2)">
         <div class="dashboard-wa-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fafaf9;border-radius:8px;border:1px solid var(--line)">
           <div style="display:flex;align-items:center;gap:8px">
             <span style="color:#ef4444">🚨</span>
@@ -1031,7 +1018,7 @@ function switchDashboardTab(tabId) {
 
     <div class="dashboard-wa-foot" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <span class="tiny muted">Notifikasi dikirim langsung ke WhatsApp teknisi terdaftar.</span>
-      <div style="display:inline-flex;align-items:center;gap:6px">
+      <div class="dashboard-wa-actions" style="display:inline-flex;align-items:center;gap:6px">
         <form method="POST" action="{{ route('manajemen.wa.testGateway') }}" style="margin:0">
           @csrf
           <button type="submit" class="btn-action primary" style="font-size:12px;padding:6px 12px;background:#16a34a;border-color:#16a34a" title="Kirim pesan uji coba ke WhatsApp Anda">

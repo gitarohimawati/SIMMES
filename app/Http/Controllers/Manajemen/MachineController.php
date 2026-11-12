@@ -11,10 +11,24 @@ class MachineController extends Controller
 {
     public function index(Request $r)
     {
-        $q = Machine::query()->orderBy('code');
-        if ($s = $r->q) $q->where(fn ($w) => $w->where('code', 'like', "%$s%")->orWhere('name', 'like', "%$s%"));
+        $q = Machine::query();
+        if ($s = trim((string) $r->input('q', ''))) {
+            $q->where(fn ($w) => $w->where('code', 'like', "%$s%")
+                ->orWhere('name', 'like', "%$s%")
+                ->orWhere('category', 'like', "%$s%")
+                ->orWhere('model', 'like', "%$s%")
+                ->orWhere('serial_number', 'like', "%$s%")
+                ->orWhere('location', 'like', "%$s%"));
+        }
         if ($r->location) $q->where('location', $r->location);
         if ($r->status) $q->where('status', $r->status);
+
+        match ($r->input('sort', 'code')) {
+            'name' => $q->orderBy('name')->orderBy('code'),
+            'location' => $q->orderBy('location')->orderBy('code'),
+            'service' => $q->orderByRaw('last_service_at IS NULL')->orderByDesc('last_service_at')->orderBy('code'),
+            default => $q->orderBy('code'),
+        };
 
         return view('manajemen.mesin.index', [
             'machines'  => $q->paginate(12)->withQueryString(),

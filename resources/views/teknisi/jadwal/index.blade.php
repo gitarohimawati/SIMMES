@@ -84,11 +84,11 @@
 
     <div style="display:flex;justify-content:flex-end;gap:8px">
       @if ($s->status !== 'selesai')
-        <button type="button" class="btn primary block" onclick="openScheduleById({{ $s->id }})" style="justify-content:center;font-size:12.5px;padding:8px 14px">
+        <button type="button" class="btn primary block btn-open-schedule" data-schedule-id="{{ $s->id }}" data-schedule="{{ json_encode($payload) }}" onclick="openScheduleById({{ $s->id }})" style="justify-content:center;font-size:12.5px;padding:8px 14px;cursor:pointer">
           🛠️ Kerjakan & Laporkan Hasil
         </button>
       @else
-        <button type="button" class="btn block" onclick="openScheduleById({{ $s->id }})" style="justify-content:center;font-size:12.5px;padding:8px 14px;background:#fff;border-color:var(--line)">
+        <button type="button" class="btn block btn-open-schedule" data-schedule-id="{{ $s->id }}" data-schedule="{{ json_encode($payload) }}" onclick="openScheduleById({{ $s->id }})" style="justify-content:center;font-size:12.5px;padding:8px 14px;background:#fff;border-color:var(--line);cursor:pointer">
           👁️ Lihat Detail & Hasil
         </button>
       @endif
@@ -119,7 +119,7 @@
 {{-- ======================================================== --}}
 {{-- MODAL POPUP PENGERJAAN & LAPORAN MAINTENANCE (TIMBUL DI TENGAH) --}}
 {{-- ======================================================== --}}
-<div id="maintenanceModal" class="quick-modal-backdrop" onclick="if(event.target===this) closeMaintenanceModal()">
+<div id="maintenanceModal" class="quick-modal-backdrop" style="display:none;z-index:999999" onclick="if(event.target===this) closeMaintenanceModal()">
   <div class="quick-modal-card" style="width:min(580px, 100%)" onclick="event.stopPropagation()">
     
     {{-- Header Modal --}}
@@ -254,7 +254,7 @@
 
         <div style="padding-top:6px;display:flex;justify-content:flex-end;gap:8px">
           <button type="button" class="btn" onclick="closeMaintenanceModal()" style="padding:9px 16px;font-size:13px;border-color:var(--line);color:var(--ink2)">Batal</button>
-          <button type="submit" class="btn primary btn-compact" style="padding:9px 20px;font-size:13px;font-weight:700" onclick="return confirm('Apakah pekerjaan maintenance ini telah selesai dan siap dilaporkan?')">
+          <button type="submit" class="btn primary btn-compact" style="padding:9px 20px;font-size:13px;font-weight:700" data-confirm="Apakah pekerjaan maintenance ini telah selesai dan siap dilaporkan?">
             ✓ Tandai Selesai & Laporkan
           </button>
         </div>
@@ -279,19 +279,53 @@
 window.schedulesData = window.schedulesData || {};
 let currentSchedule = null;
 
+// Pindahkan modal ke level document.body saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('maintenanceModal');
+  if (modal && modal.parentElement !== document.body) {
+    document.body.appendChild(modal);
+  }
+});
+
 function openScheduleById(id) {
   if (window.schedulesData && window.schedulesData[id]) {
     openMaintenanceModal(window.schedulesData[id]);
-  } else {
-    console.warn('Jadwal data tidak ditemukan untuk ID:', id);
+    return;
   }
+  const btn = document.querySelector(`[data-schedule-id="${id}"]`);
+  if (btn && btn.dataset.schedule) {
+    try {
+      const data = typeof btn.dataset.schedule === 'string' ? JSON.parse(btn.dataset.schedule) : btn.dataset.schedule;
+      openMaintenanceModal(data);
+      return;
+    } catch(e) {}
+  }
+  console.warn('Jadwal data tidak ditemukan untuk ID:', id);
 }
+
+// Event delegation click untuk memastikan tombol jadwal selalu merespon
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-open-schedule, [data-schedule-id]');
+  if (btn && btn.dataset.schedule) {
+    e.preventDefault();
+    try {
+      const item = typeof btn.dataset.schedule === 'string' ? JSON.parse(btn.dataset.schedule) : btn.dataset.schedule;
+      openMaintenanceModal(item);
+    } catch(err) {
+      console.error('Gagal parsing data schedule:', err);
+    }
+  }
+});
 
 function submitMaintenancePhoto(input, textId) {
   if (input.files && input.files.length > 0) {
+    const form = input.form;
+    if (currentSchedule && currentSchedule.upload_url) {
+      form.action = currentSchedule.upload_url;
+    }
     const textEl = document.getElementById(textId);
     if (textEl) textEl.textContent = '⏳ Mengunggah...';
-    input.form.submit();
+    form.submit();
   }
 }
 

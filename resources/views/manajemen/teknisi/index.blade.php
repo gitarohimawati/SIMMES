@@ -1,10 +1,10 @@
 @extends('layouts.manager')
 @section('title', 'Daftar Teknisi')
 @section('content')
-<div class="top">
+<div class="top technician-page-header">
   <div class="top-row">
-    <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    <div class="technician-page-heading">
+      <div class="technician-header-meta" style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <span class="live-status-pill">
           <span class="pulse-dot"></span>
           {{ $technicians->count() }} Teknisi Aktif
@@ -94,9 +94,9 @@
   </script>
 @endif
 
-<div class="grid g3">
+<div class="grid g3 technician-grid">
   @forelse ($technicians as $t)
-    <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;padding:22px">
+    <div class="card technician-card" style="display:flex;flex-direction:column;justify-content:space-between;padding:22px">
       <div>
         <div style="display:flex;align-items:center;gap:12px">
           <div class="avatar" style="width:42px;height:42px;font-size:14px;background:#f3f4f6;color:var(--ink);border:1px solid #e5e7eb">
@@ -157,7 +157,7 @@
             @endif
           @endif
           @if (!$t->is(auth()->user()))
-            <form method="POST" action="{{ route('manajemen.pengguna.destroy', $t) }}" style="display:inline;margin:0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun teknisi {{ $t->name }}?');">
+            <form method="POST" action="{{ route('manajemen.pengguna.destroy', $t) }}" style="display:inline;margin:0" data-confirm="Apakah Anda yakin ingin menghapus akun teknisi {{ $t->name }}?">
               @csrf
               @method('DELETE')
               <button class="btn-icon danger" type="submit" title="Hapus Akun Teknisi">

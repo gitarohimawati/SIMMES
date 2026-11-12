@@ -40,14 +40,22 @@
   window.showSimmesConfirm = function(opts) {
     opts = opts || {};
     const modal = document.getElementById('simmesConfirmModal');
-    if (!modal) return;
+    if (!modal) {
+      if (typeof opts.onConfirm === 'function') opts.onConfirm();
+      return;
+    }
 
-    const titleEl = document.getElementById('simmesConfirmTitle');
-    const msgEl   = document.getElementById('simmesConfirmMessage');
-    const okBtn   = document.getElementById('simmesConfirmBtnOk');
+    // Pastikan modal menempel langsung pada document.body agar tidak terpotong container/z-index
+    if (modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
+
+    const titleEl   = document.getElementById('simmesConfirmTitle');
+    const msgEl     = document.getElementById('simmesConfirmMessage');
+    const okBtn     = document.getElementById('simmesConfirmBtnOk');
     const cancelBtn = document.getElementById('simmesConfirmBtnCancel');
-    const iconEl  = document.getElementById('simmesConfirmIcon');
-    const iconWrap = document.getElementById('simmesConfirmIconWrap');
+    const iconEl    = document.getElementById('simmesConfirmIcon');
+    const iconWrap  = document.getElementById('simmesConfirmIconWrap');
 
     const msg = opts.message || 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
     const isDelete = /hapus|delete|batal/i.test(msg);
@@ -57,13 +65,9 @@
 
     if (okBtn) {
       okBtn.textContent = opts.confirmText || (isDelete ? 'Ya, Hapus' : 'Ya, Lanjutkan');
-      if (isDelete) {
-        okBtn.style.background = '#b1002c';
-        okBtn.style.borderColor = '#b1002c';
-      } else {
-        okBtn.style.background = 'var(--brand, #b1002c)';
-        okBtn.style.borderColor = 'var(--brand, #b1002c)';
-      }
+      okBtn.style.background = '#b1002c';
+      okBtn.style.borderColor = '#b1002c';
+      okBtn.style.color = '#ffffff';
     }
 
     if (cancelBtn) cancelBtn.textContent = opts.cancelText || 'Batal';
@@ -106,80 +110,150 @@
     }
   });
 
-  // Intercept semua form yang menggunakan onsubmit="return confirm(...)" atau data-confirm
-  document.addEventListener('submit', function(e) {
-    const form = e.target;
-    if (form.dataset.simmesConfirmed === 'true') {
-      form.dataset.simmesConfirmed = '';
-      return; // Izinkan submit berjalan
+  // Pembersihan inline onsubmit & onclick confirm agar native browser dialog (127.0.0.1 says) tidak pernah muncul
+  function sanitizeConfirmElements() {
+    document.querySelectorAll('form[onsubmit*="confirm("]').forEach(form => {
+      const onsub = form.getAttribute('onsubmit') || '';
+      const match = onsub.match(/confirm\(\s*['"`]([\s\S]*?)['"`]\s*\)/);
+      if (match) {
+        form.dataset.confirm = match[1];
+        form.removeAttribute('onsubmit');
+        form.onsubmit = null;
+      }
+    });
+
+    document.querySelectorAll('[onclick*="confirm("]').forEach(el => {
+      const onclickAttr = el.getAttribute('onclick') || '';
+      const match = onclickAttr.match(/confirm\(\s*['"`]([\s\S]*?)['"`]\s*\)/);
+      if (match) {
+        el.dataset.confirm = match[1];
+        el.removeAttribute('onclick');
+        el.onclick = null;
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', sanitizeConfirmElements);
+  } else {
+    sanitizeConfirmElements();
+  }
+
+  // Intercept click di capture phase sebelum submit form diproses oleh browser
+  document.addEventListener('click', function(e) {
+    const el = e.target.closest('button, a, input[type="submit"]');
+    if (!el) return;
+
+    if (el.dataset.simmesConfirmed === 'true') {
+      el.dataset.simmesConfirmed = '';
+      return;
     }
 
-    let msg = form.dataset.confirm;
+    let msg = el.dataset.confirm;
+    let targetForm = null;
+
     if (!msg) {
-      const onsub = form.getAttribute('onsubmit');
-      if (onsub && onsub.includes('confirm(')) {
-        const match = onsub.match(/confirm\(\s*['"`](.*?)['"`]\s*\)/);
-        if (match) msg = match[1];
+      const onclickAttr = el.getAttribute('onclick') || '';
+      if (onclickAttr.includes('confirm(')) {
+        const match = onclickAttr.match(/confirm\(\s*['"`]([\s\S]*?)['"`]\s*\)/);
+        if (match) {
+          msg = match[1];
+          el.removeAttribute('onclick');
+          el.onclick = null;
+        }
+      }
+    }
+
+    // Jika elemen adalah tombol submit di dalam form, periksa form-nya
+    if (!msg && (el.type === 'submit' || el.tagName === 'BUTTON' || el.tagName === 'INPUT')) {
+      const form = el.closest('form');
+      if (form) {
+        if (form.dataset.simmesConfirmed === 'true') {
+          return;
+        }
+        if (form.dataset.confirm) {
+          msg = form.dataset.confirm;
+          targetForm = form;
+        } else {
+          const onsub = form.getAttribute('onsubmit') || '';
+          if (onsub.includes('confirm(')) {
+            const match = onsub.match(/confirm\(\s*['"`]([\s\S]*?)['"`]\s*\)/);
+            if (match) {
+              msg = match[1];
+              form.removeAttribute('onsubmit');
+              form.onsubmit = null;
+              targetForm = form;
+            }
+          }
+        }
       }
     }
 
     if (msg) {
       e.preventDefault();
+      e.stopPropagation();
       e.stopImmediatePropagation();
+
       window.showSimmesConfirm({
         message: msg,
         onConfirm: function() {
-          form.dataset.simmesConfirmed = 'true';
-          form.submit();
+          if (targetForm) {
+            targetForm.dataset.simmesConfirmed = 'true';
+            if (el.name) {
+              const hidden = document.createElement('input');
+              hidden.type = 'hidden';
+              hidden.name = el.name;
+              hidden.value = el.value;
+              targetForm.appendChild(hidden);
+            }
+            targetForm.submit();
+          } else if (el.tagName === 'A' && el.href && !el.href.startsWith('javascript:')) {
+            window.location.href = el.href;
+          } else {
+            const form = el.closest('form');
+            if (form) {
+              form.dataset.simmesConfirmed = 'true';
+              form.submit();
+            } else {
+              el.dataset.simmesConfirmed = 'true';
+              el.click();
+            }
+          }
         }
       });
     }
   }, true);
 
-  // Intercept tombol/link yang menggunakan onclick="return confirm(...)" atau data-confirm
-  document.addEventListener('click', function(e) {
-    const btn = e.target.closest('button, a, input[type="submit"]');
-    if (!btn) return;
-
-    if (btn.dataset.simmesConfirmed === 'true') {
-      btn.dataset.simmesConfirmed = '';
-      return; // Izinkan aksi default berjalan
+  // Cadangan submit event listener
+  document.addEventListener('submit', function(e) {
+    const form = e.target;
+    if (form.dataset.simmesConfirmed === 'true') {
+      return;
     }
 
-    let msg = btn.dataset.confirm;
+    let msg = form.dataset.confirm;
     if (!msg) {
-      const onclickAttr = btn.getAttribute('onclick');
-      if (onclickAttr && onclickAttr.includes('confirm(')) {
-        const match = onclickAttr.match(/confirm\(\s*['"`](.*?)['"`]\s*\)/);
-        if (match) msg = match[1];
+      const onsub = form.getAttribute('onsubmit') || '';
+      if (onsub.includes('confirm(')) {
+        const match = onsub.match(/confirm\(\s*['"`]([\s\S]*?)['"`]\s*\)/);
+        if (match) {
+          msg = match[1];
+          form.removeAttribute('onsubmit');
+          form.onsubmit = null;
+        }
       }
     }
 
     if (msg) {
       e.preventDefault();
+      e.stopPropagation();
       e.stopImmediatePropagation();
+
       window.showSimmesConfirm({
         message: msg,
         onConfirm: function() {
-          btn.dataset.simmesConfirmed = 'true';
-          if (btn.tagName === 'A' && btn.href && !btn.href.startsWith('javascript:')) {
-            window.location.href = btn.href;
-          } else if (btn.type === 'submit') {
-            const form = btn.closest('form');
-            if (form) {
-              form.dataset.simmesConfirmed = 'true';
-              if (btn.name) {
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = btn.name;
-                hidden.value = btn.value;
-                form.appendChild(hidden);
-              }
-              form.submit();
-            }
-          } else {
-            btn.click();
-          }
+          form.dataset.simmesConfirmed = 'true';
+          form.submit();
         }
       });
     }

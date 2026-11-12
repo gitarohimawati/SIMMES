@@ -231,6 +231,14 @@ tbody tr{transition:.15s} tbody tr:hover{background:var(--rose50)}
 .input,.select,.textarea{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;width:100%;transition:.15s;outline:none}
 .input:focus,.select:focus,.textarea:focus{border-color:var(--r400);box-shadow:0 0 0 4px rgba(244,90,114,.16)}
 .filters .input{flex:1;min-width:220px;width:auto} .filters .select{width:auto;min-width:160px}
+.repair-filters{align-items:center;padding:14px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 10px rgba(15,23,42,.04)}
+.repair-search-control{display:flex;align-items:center;gap:8px;flex:1 1 300px;min-width:260px}
+.repair-search-control .input{min-width:0;width:100%;flex:1}
+.repair-filters .select{flex:0 1 165px;min-width:145px}
+.repair-reset{white-space:nowrap}
+.tabs-bar.maintenance-tabs-bar{justify-content:center}
+.tabs-bar.maintenance-tabs-bar .actions{margin-left:0}
+.tabs-bar.maintenance-tabs-bar .tabs{justify-content:center}
 label.f{display:block;font-weight:700;font-size:13px;color:var(--ink2);margin:16px 0 6px}
 .err{color:var(--r700);font-size:13px;margin-top:6px;font-weight:600}
 .flash{background:linear-gradient(135deg,#fff5f6 0%,#ffe9ec 100%);border:1px solid var(--rose200);border-left:5px solid var(--brand);color:var(--r800);padding:13px 18px;border-radius:14px;margin-bottom:18px;font-weight:600;box-shadow:0 4px 14px -4px rgba(177,0,44,0.15)}
@@ -253,18 +261,6 @@ label.f{display:block;font-weight:700;font-size:13px;color:var(--ink2);margin:16
 .profil-actions-centered{display:flex;justify-content:center;align-items:center;width:100%;text-align:center}
 .btn-profil-save,.btn-profil-logout{display:inline-flex;justify-content:center;align-items:center;align-self:center;margin-left:auto;margin-right:auto}
 
-/* grafik donut dashboard */
-.ticket-donut-chart{display:flex;align-items:center;justify-content:center;gap:32px;margin-top:22px;min-height:230px}
-.ticket-donut{width:196px;aspect-ratio:1;border-radius:50%;background:var(--chart-gradient);display:grid;place-items:center;position:relative;flex:none;box-shadow:0 16px 32px -18px rgba(136,19,55,.65)}
-.ticket-donut::after{content:"";position:absolute;inset:27px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
-.ticket-donut__center{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center}
-.ticket-donut__center strong{font-size:29px;line-height:1;color:var(--ink)}
-.ticket-donut__center span{margin-top:5px;font-size:11px;color:var(--ink3);font-weight:700}
-.ticket-donut__legend{display:grid;grid-template-columns:repeat(2,minmax(72px,1fr));gap:10px 16px;flex:1;max-width:230px}
-.ticket-donut__legend-item{display:grid;grid-template-columns:9px 1fr auto;align-items:center;gap:7px;color:var(--ink2);font-size:12px}
-.ticket-donut__legend-dot{width:9px;height:9px;border-radius:50%;background:var(--segment-color);box-shadow:0 0 0 3px color-mix(in srgb,var(--segment-color) 15%,transparent)}
-.ticket-donut__legend-item b{color:var(--ink);font-size:12px}
-
 /* tabel dashboard */
 .dashboard-table{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
 .dashboard-table th{padding:13px 16px!important;background:linear-gradient(90deg,#fff6f7,#fff0f2)!important;color:var(--r800)!important;border-top:0!important;border-bottom:1px solid var(--rose200)!important;font-size:11px!important;letter-spacing:.55px!important}
@@ -282,11 +278,45 @@ label.f{display:block;font-weight:700;font-size:13px;color:var(--ink2);margin:16
 .dashboard-trend-widget::before{width:150px;height:150px;right:-58px;top:-78px;background:rgba(225,29,72,.09)}
 .dashboard-trend-widget::after{width:110px;height:110px;left:-58px;bottom:-65px;border:18px solid rgba(251,113,133,.12)}
 .dashboard-trend-widget>div{position:relative;z-index:1}
-.dashboard-trend-widget .ticket-donut-chart{margin:16px -4px -2px;padding:14px;border-radius:16px;background:#fff;border:1px solid var(--line)}
-.dashboard-trend-widget .ticket-donut{width:190px;box-shadow:0 18px 34px -18px rgba(177,0,44,.28)}
-.dashboard-trend-widget .ticket-donut::after{background:rgba(255,255,255,.92)}
-.dashboard-trend-widget .ticket-donut__legend-item{padding:4px 0}
 .dashboard-wa-widget{grid-column:1;grid-row:1}
+.trend-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:2px 0 14px}
+.trend-summary-card{display:flex;flex-direction:column;gap:4px;min-width:0;padding:10px 12px;border:1px solid #e8eaf2;border-radius:12px;background:#f8f9fc}
+.trend-summary-card span{color:var(--ink2);font-size:11px;line-height:1.35}
+.trend-summary-card b{color:var(--ink);font-size:17px;line-height:1.2;font-weight:800;overflow-wrap:anywhere}
+.trend-summary-total{background:#f4f2ff;border-color:#e4ddff}
+.trend-summary-total b{color:#5b4be3}
+.trend-horizontal-chart{padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff 0%,#fbfbfe 100%)}
+.trend-scale{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px;color:var(--ink2);font-size:11px;font-weight:600}
+.trend-scale span:last-child{white-space:nowrap;color:var(--ink3)}
+.trend-month-list{display:grid;gap:12px}
+.trend-month-row{display:grid;grid-template-columns:42px minmax(0,1fr) 34px;align-items:center;gap:10px;min-width:0}
+.trend-month-label{color:var(--ink2);font-size:12px;font-weight:700}
+.trend-month-track{height:12px;overflow:hidden;border-radius:999px;background:#f0eff6;box-shadow:inset 0 1px 2px rgba(27,28,28,.05)}
+.trend-month-track span{display:block;height:100%;min-width:0;border-radius:inherit;background:linear-gradient(90deg,#8b5cf6,#5f63ed);transform-origin:left;animation:trend-bar-enter .65s cubic-bezier(.2,.8,.2,1) both}
+.trend-month-row:nth-child(2) .trend-month-track span{animation-delay:.06s}
+.trend-month-row:nth-child(3) .trend-month-track span{animation-delay:.12s}
+.trend-month-row:nth-child(4) .trend-month-track span{animation-delay:.18s}
+.trend-month-row:nth-child(5) .trend-month-track span{animation-delay:.24s}
+.trend-month-row:nth-child(6) .trend-month-track span{animation-delay:.3s}
+.trend-month-count{text-align:right;color:var(--ink);font-size:12px;font-variant-numeric:tabular-nums}
+@keyframes trend-bar-enter{from{transform:scaleX(0);opacity:.4}to{transform:scaleX(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.trend-month-track span{animation:none}}
+.dashboard-wa-widget{gap:16px}
+.dashboard-wa-header{gap:12px}
+.dashboard-wa-header .link{white-space:nowrap}
+.dashboard-wa-status-box{gap:10px}
+.dashboard-wa-status-box>div{min-width:0}
+.dashboard-wa-status-box>div>span:last-child{font-size:12.5px!important;line-height:1.4}
+.dashboard-wa-status-box>.badge-wa{white-space:nowrap;flex:none}
+.dashboard-wa-item{gap:10px!important;min-height:48px;border-radius:12px!important;padding:8px 10px!important}
+.dashboard-wa-item>div{min-width:0;gap:9px!important}
+.dashboard-wa-item>div>span:first-child{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:9px;background:#fff;font-size:15px}
+.dashboard-wa-item>div>span:last-child{font-size:12px;line-height:1.4}
+.dashboard-wa-item>.chip{flex:none;font-size:11px!important}
+.dashboard-wa-foot{gap:12px!important}
+.dashboard-wa-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px!important}
+.dashboard-wa-actions form{margin:0;min-width:0}
+.dashboard-wa-actions .btn-action{min-height:42px;justify-content:center}
 #quickReportModal summary::-webkit-details-marker{display:none}
 
 /* kalender */
@@ -318,11 +348,17 @@ label.f{display:block;font-weight:700;font-size:13px;color:var(--ink2);margin:16
 .paper{background:#fff;border:1px solid var(--line);border-radius:6px;padding:46px 52px;max-width:980px;margin:0 auto;box-shadow:var(--shadow);position:relative}
 .paper::before{content:"";position:absolute;top:0;left:52px;width:56px;height:6px;background:var(--grad-brand);border-radius:0 0 6px 6px}
 .paper h1{font-size:25px;font-weight:800;margin-top:12px}
-.sumbox{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:16px;padding:14px 22px;margin:22px 0;background:var(--grad-soft)}
-.sumbox b{font-size:30px;display:block;line-height:1.1} .sumbox span{color:var(--ink2);font-size:13px}
+.sumbox{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;border:0;border-radius:0;padding:0;margin:22px 0;background:none}
+.sumbox>div{min-width:0;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;box-shadow:0 2px 8px rgba(15,23,42,.04)}
+.sumbox b{font-size:28px;display:block;line-height:1.1;margin-bottom:5px} .sumbox span{color:var(--ink2);font-size:12.5px}
 .paper h3{margin:26px 0 10px;font-size:17px}
-.sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:70px}
-.sign div{border-top:1.5px solid var(--ink);padding-top:8px;color:var(--ink2)}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:54px;break-inside:avoid}
+.sign-card{display:flex;flex-direction:column;min-height:160px;text-align:center;color:var(--ink2)}
+.sign-role{font-weight:700;color:var(--ink);font-size:13px}
+.sign-space{flex:1;min-height:90px}
+.sign-line{border-top:1px solid var(--ink);padding-top:7px;font-size:12px}
+.sign>div{position:relative;min-height:160px;padding-top:0;color:var(--ink2)}
+.sign>div>span{position:absolute;bottom:0;left:0;right:0;border-top:1px solid var(--ink);padding-top:7px;font-size:12px}
 .ba{display:flex;gap:10px} .ba .thumb{width:84px;height:66px}
 
 /* teknisi cards in manager */
@@ -526,9 +562,6 @@ body.tech{background:var(--surface-low);min-height:100vh}
   .dashboard-title-line h2{line-height:1.35}
   .dashboard-section-actions{width:100%;flex-wrap:wrap}
   .dashboard-section-actions .btn-action{flex:1 1 auto;justify-content:center;min-height:40px}
-  .ticket-donut-chart{flex-direction:column;gap:20px;min-height:0}
-  .ticket-donut,.dashboard-trend-widget .ticket-donut{width:170px}
-  .ticket-donut__legend{width:100%;max-width:270px}
   .kv{grid-template-columns:1fr 1fr;gap:12px}
   /* Tombol aksi / input form pada mobile: compact, di sebelah kanan, tidak memanjang */
   .form-actions-end{display:flex!important;justify-content:flex-end!important;align-items:center!important;width:100%!important;margin-top:16px!important;gap:8px!important}
@@ -566,6 +599,45 @@ body.tech{background:var(--surface-low);min-height:100vh}
   }
 }
 
+/* Shared mobile polish: readable supporting text, calmer spacing, and stable wrapping. */
+@media(max-width:860px){
+  .main{padding:22px 16px 42px}
+  .top{gap:10px;margin-bottom:20px}
+  .top p{font-size:13px;line-height:1.5;max-width:70ch}
+  .small{font-size:13px;line-height:1.5}
+  .tiny{font-size:12.5px;line-height:1.45}
+  .card,.tcard{box-shadow:0 3px 12px rgba(20,20,20,.045)}
+  .card h2,.card h3{line-height:1.35}
+  .input,.select,.textarea{min-height:44px}
+  .btn,.btn-action{min-height:40px}
+  .tablewrap,.dashboard-table-wrap,.report-table-wrap{-webkit-overflow-scrolling:touch}
+  .technician-card{padding:18px!important}
+  .technician-card .tiny{overflow-wrap:anywhere}
+  .technician-card .badge-wa{max-width:100%;overflow-wrap:anywhere}
+}
+
+@media(max-width:640px){
+  .main{padding:18px 14px 34px}
+  .top{margin-bottom:18px}
+  .top h1{font-size:21px;line-height:1.3}
+  .top p{font-size:13px;line-height:1.5}
+  .small{font-size:13px}
+  .tiny{font-size:12.5px}
+  .card{padding:16px 14px;border-radius:15px}
+  .technician-page-header .top-row{display:flex;flex-direction:column;align-items:stretch;gap:14px}
+  .technician-page-heading{width:100%;min-width:0}
+  .technician-header-meta{align-items:flex-start!important;flex-direction:column;gap:6px!important;margin-bottom:8px!important}
+  .technician-header-meta .live-status-pill{max-width:100%}
+  .technician-header-meta .tiny{font-size:12.5px;line-height:1.4}
+  .technician-page-header .top-row>.btn{width:100%!important;max-width:none!important;align-self:stretch!important;min-height:44px!important}
+  .technician-page-header>p{max-width:52ch}
+  .technician-grid{gap:12px}
+  .technician-card{padding:16px!important;gap:12px}
+  .technician-card .grid.g2{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}
+  .technician-card>div:last-child{align-items:flex-start!important;flex-direction:column;gap:10px!important}
+  .technician-card>div:last-child>div:last-child{width:100%;display:flex!important;justify-content:flex-end;flex-wrap:wrap;gap:8px!important}
+}
+
 /* ========================================================
    DASHBOARD MANAGER: PUSAT AKTIVITAS RESPONSIVE & MOBILE CARDS
    ======================================================== */
@@ -596,10 +668,59 @@ body.tech{background:var(--surface-low);min-height:100vh}
 #action-tab-completed .btn-action:hover{background:#047857!important;border-color:#047857!important;color:#fff!important}
 #action-tab-completed .btn-action *{color:#fff!important}
 .dash-m-empty{padding:32px 16px;text-align:center;background:#fff;border-radius:12px;border:1px dashed #cbd5e1}
+.report-mobile-list{display:none;flex-direction:column;gap:12px}
 
-@media(max-width:768px){
+@media(max-width:860px){
   .dashboard-table-wrap{display:none!important}
   .dashboard-mobile-list{display:flex!important}
+  .report-table-wrap{display:none!important}
+  .report-mobile-list{display:flex!important}
+
+  .trend-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .trend-summary-card{padding:9px 10px}
+  .trend-summary-card:last-child{grid-column:1/-1}
+  .trend-horizontal-chart{padding:12px 10px}
+  .trend-scale{font-size:10.5px}
+  .trend-month-list{gap:11px}
+  .trend-month-row{grid-template-columns:36px minmax(0,1fr) 30px;gap:8px}
+  .trend-month-track{height:11px}
+  .dashboard-wa-header{flex-direction:column!important;align-items:flex-start!important;gap:8px!important}
+  .dashboard-wa-status-box{align-items:flex-start!important;flex-wrap:wrap}
+  .dashboard-wa-status-box>.badge-wa{margin-left:26px}
+  .dashboard-wa-item{align-items:flex-start!important}
+  .dashboard-wa-foot{display:flex!important;flex-direction:column!important;align-items:stretch!important;text-align:left!important;gap:12px!important}
+  .dashboard-wa-foot>.tiny{font-size:12.5px}
+  .dashboard-wa-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:8px!important}
+  .dashboard-wa-actions form,.dashboard-wa-actions .btn-action{width:100%;min-width:0}
+  .dashboard-wa-actions .btn-action{padding:8px 7px;font-size:11.5px;gap:5px;white-space:nowrap}
+  .dashboard-wa-actions .btn-action svg{width:14px;height:14px}
+
+  /* Paper & Laporan Mobile / Tablet */
+  .paper{padding:18px 14px!important;border-radius:14px!important;box-shadow:0 2px 12px rgba(0,0,0,.06)!important}
+  .paper::before{left:20px!important;width:40px!important}
+  .paper h1{font-size:18px!important;line-height:1.3!important}
+  .report-header-row{flex-direction:column!important;align-items:stretch!important;gap:8px!important}
+  .report-meta{text-align:left!important}
+  .sumbox{grid-template-columns:repeat(2,1fr)!important;gap:10px!important;padding:12px 14px!important;margin:16px 0!important}
+  .sumbox b{font-size:24px!important}
+  .sumbox span{font-size:11.5px!important}
+  .sumbox{padding:0!important}
+  .sumbox>div{padding:12px!important}
+  .paper .sign{grid-template-columns:1fr 1fr!important;gap:12px!important;text-align:center!important;margin-top:28px!important}
+  .sign>div{min-width:0;min-height:130px}
+  .maintenance-tabs-bar{justify-content:center!important;gap:8px!important;flex-wrap:nowrap!important}
+  .maintenance-tabs-bar .tabs{width:auto;justify-content:center;flex-wrap:nowrap;gap:5px}
+  .maintenance-tabs-bar .tabs a{padding:7px 9px!important;font-size:11px!important;white-space:nowrap}
+  .maintenance-tabs-bar .actions{width:auto;justify-content:center;margin:0!important;flex:none}
+  .maintenance-tabs-bar .actions .btn{padding:7px 9px!important;font-size:11px!important;white-space:nowrap}
+  .repair-filters{align-items:stretch}
+  .repair-search-control{flex-basis:100%;min-width:0}
+  .repair-filters .select{flex:1 1 calc(50% - 8px);min-width:0}
+  .repair-reset{display:inline-flex;align-items:center;justify-content:center}
+  .report-top-actions{display:flex!important;width:100%!important;gap:8px!important}
+  .report-top-actions form{flex:1!important}
+  .report-top-actions form input{width:100%!important}
+  .report-top-actions button{flex:1!important;justify-content:center!important}
 }
 
 @media(max-width:640px){
@@ -620,8 +741,21 @@ body.tech{background:var(--surface-low);min-height:100vh}
   .dash-card-footer a{width:100%!important;text-align:center!important}
 }
 
+/* ========================================================
+   AKSI TABEL RESPONSIVE (DESKTOP & TABLET TIDAK TURUN BARIS)
+   ======================================================== */
+.table-actions-row{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;gap:5px!important;flex-wrap:nowrap!important;white-space:nowrap!important}
+.col-actions{text-align:right!important;white-space:nowrap!important;width:1%!important;min-width:185px!important}
+@media(max-width:1024px){
+  .table-actions-row{gap:4px!important;flex-wrap:nowrap!important;white-space:nowrap!important}
+  .table-actions-row .btn-icon{width:31px!important;height:31px!important;padding:0!important;flex-shrink:0!important}
+  .table-actions-row .btn-icon svg{width:14px!important;height:14px!important}
+  .col-actions{min-width:180px!important;white-space:nowrap!important}
+}
+
 @media print{
-  .side,.top .actions,.noprint,.flash{display:none!important}
-  .app{display:block} .main{padding:0;background:#fff} .paper{box-shadow:none;border:0;padding:0}
+  .side,.top .actions,.noprint,.flash,.report-mobile-list,.dashboard-mobile-list{display:none!important}
+  .dashboard-table-wrap,.report-table-wrap{display:block!important}
+  .app{display:block} .main{padding:0;background:#fff} .paper{box-shadow:none;border:0;padding:0;max-width:100%!important}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
